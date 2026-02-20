@@ -52,7 +52,8 @@ dependencies {
 
     // Hilt (Switched to KSP)
     implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler) 
+    ksp(libs.hilt.compiler)
+    implementation(libs.androidx.hilt.navigation.compose)
 
     // Room (Switched to KSP)
     implementation(libs.androidx.room.runtime)

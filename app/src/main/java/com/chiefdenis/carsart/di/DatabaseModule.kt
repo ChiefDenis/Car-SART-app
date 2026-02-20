@@ -20,10 +20,16 @@ object DatabaseModule {
 
     @Provides
     @Singleton
+    fun providePassphrase(): () -> ByteArray {
+        // TODO: Replace with a secure key provider
+        return { SQLiteDatabase.getBytes("default-passphrase".toCharArray()) }
+    }
+
+    @Provides
+    @Singleton
     fun provideAppDatabase(
         @ApplicationContext context: Context,
-        // TODO: Replace with a secure key provider
-        passphraseProvider: () -> ByteArray = { SQLiteDatabase.getBytes("default-passphrase".toCharArray()) }
+        passphraseProvider: () -> ByteArray
     ): AppDatabase {
         val factory = SupportFactory(passphraseProvider())
         return Room.databaseBuilder(

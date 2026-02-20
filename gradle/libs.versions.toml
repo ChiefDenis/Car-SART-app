@@ -20,6 +20,7 @@ junit5 = "5.10.2"
 mockk = "1.13.10"
 hiltExt = "1.2.0"
 materialIcons = "1.6.7"
+hiltNavigationCompose = "1.2.0"
 
 [libraries]
 # AndroidX
@@ -44,7 +45,7 @@ androidx-compose-material-icons = { group = "androidx.compose.material", name = 
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }
 androidx-hilt-compiler = { group = "androidx.hilt", name = "hilt-compiler", version.ref = "hiltExt" }
-androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltExt" }
+androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 
 # Room
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
