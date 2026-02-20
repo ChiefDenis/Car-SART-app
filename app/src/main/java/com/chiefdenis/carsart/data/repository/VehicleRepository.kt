@@ -11,7 +11,7 @@ interface VehicleRepository {
     suspend fun addVehicle(vehicle: Vehicle)
     suspend fun updateVehicle(vehicle: Vehicle)
     fun getAllVehicles(): Flow<List<Vehicle>>
-    suspend fun getVehicleById(id: UUID): Vehicle?
+    fun getVehicleById(id: UUID): Flow<Vehicle?>
     suspend fun deleteVehicleById(id: UUID)
     suspend fun updateMileage(id: UUID, mileage: Int)
     fun searchVehicles(query: String): Flow<List<Vehicle>>
@@ -34,7 +34,7 @@ class VehicleRepositoryImpl @Inject constructor(
         return vehicleDao.getAllVehicles()
     }
 
-    override suspend fun getVehicleById(id: UUID): Vehicle? {
+    override fun getVehicleById(id: UUID): Flow<Vehicle?> {
         return vehicleDao.getVehicleById(id)
     }
 

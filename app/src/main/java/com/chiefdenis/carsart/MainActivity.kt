@@ -17,12 +17,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.chiefdenis.carsart.ui.screens.AddServiceRecordScreen
 import com.chiefdenis.carsart.ui.screens.AddVehicleScreen
 import com.chiefdenis.carsart.ui.screens.SettingsScreen
+import com.chiefdenis.carsart.ui.screens.VehicleDetailScreen
 import com.chiefdenis.carsart.ui.screens.VehiclesScreen
 import com.chiefdenis.carsart.ui.theme.CarSARTTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -31,6 +35,12 @@ sealed class Screen(val route: String, val label: String? = null, val icon: Imag
     object Vehicles : Screen("vehicles", "Vehicles", Icons.Default.DirectionsCar)
     object Settings : Screen("settings", "Settings", Icons.Default.Settings)
     object AddVehicle : Screen("add_vehicle")
+    object VehicleDetail : Screen("vehicle_detail/{vehicleId}") {
+        fun createRoute(vehicleId: String) = "vehicle_detail/$vehicleId"
+    }
+    object AddServiceRecord : Screen("add_service_record/{vehicleId}") {
+        fun createRoute(vehicleId: String) = "add_service_record/$vehicleId"
+    }
 }
 
 val items = listOf(
@@ -76,9 +86,28 @@ class MainActivity : ComponentActivity() {
                         startDestination = Screen.Vehicles.route,
                         Modifier.padding(innerPadding)
                     ) {
-                        composable(Screen.Vehicles.route) { VehiclesScreen(onAddVehicle = { navController.navigate(Screen.AddVehicle.route) }) }
+                        composable(Screen.Vehicles.route) { 
+                            VehiclesScreen(
+                                onAddVehicle = { navController.navigate(Screen.AddVehicle.route) },
+                                onVehicleClick = { vehicleId -> navController.navigate(Screen.VehicleDetail.createRoute(vehicleId.toString())) }
+                            )
+                        }
                         composable(Screen.Settings.route) { SettingsScreen() }
                         composable(Screen.AddVehicle.route) { AddVehicleScreen(onVehicleAdded = { navController.popBackStack() }) }
+                        composable(
+                            route = Screen.VehicleDetail.route,
+                            arguments = listOf(navArgument("vehicleId") { type = NavType.StringType })
+                        ) { 
+                            VehicleDetailScreen(
+                                onAddServiceRecord = { vehicleId -> navController.navigate(Screen.AddServiceRecord.createRoute(vehicleId.toString())) }
+                            )
+                        }
+                        composable(
+                            route = Screen.AddServiceRecord.route,
+                            arguments = listOf(navArgument("vehicleId") { type = NavType.StringType })
+                        ) {
+                            AddServiceRecordScreen(onServiceRecordAdded = { navController.popBackStack() })
+                        }
                     }
                 }
             }

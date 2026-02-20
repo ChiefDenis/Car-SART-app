@@ -20,7 +20,7 @@ interface VehicleDao {
     fun getAllVehicles(): Flow<List<Vehicle>>
 
     @Query("SELECT * FROM vehicles WHERE id = :id")
-    suspend fun getVehicleById(id: UUID): Vehicle?
+    fun getVehicleById(id: UUID): Flow<Vehicle?>
 
     @Query("DELETE FROM vehicles WHERE id = :id")
     suspend fun deleteVehicleById(id: UUID): Int

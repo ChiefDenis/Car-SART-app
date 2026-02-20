@@ -1,5 +1,6 @@
 package com.chiefdenis.carsart.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,7 +28,11 @@ import com.chiefdenis.carsart.data.database.VehicleType
 import java.util.UUID
 
 @Composable
-fun VehiclesScreen(viewModel: VehiclesViewModel = hiltViewModel(), onAddVehicle: () -> Unit) {
+fun VehiclesScreen(
+    viewModel: VehiclesViewModel = hiltViewModel(),
+    onAddVehicle: () -> Unit,
+    onVehicleClick: (UUID) -> Unit
+) {
     val vehicles by viewModel.vehicles.collectAsState()
 
     Scaffold(
@@ -42,7 +47,7 @@ fun VehiclesScreen(viewModel: VehiclesViewModel = hiltViewModel(), onAddVehicle:
         } else {
             LazyColumn(modifier = Modifier.padding(padding)) {
                 items(vehicles) { vehicle ->
-                    VehicleListItem(vehicle = vehicle)
+                    VehicleListItem(vehicle = vehicle, onClick = { onVehicleClick(vehicle.id) })
                 }
             }
         }
@@ -50,8 +55,12 @@ fun VehiclesScreen(viewModel: VehiclesViewModel = hiltViewModel(), onAddVehicle:
 }
 
 @Composable
-fun VehicleListItem(vehicle: Vehicle) {
-    Card(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+fun VehicleListItem(vehicle: Vehicle, onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .clickable { onClick() }
+    ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = vehicle.nickname, style = androidx.compose.material3.MaterialTheme.typography.titleLarge)
             Text(text = "${vehicle.year} ${vehicle.make} ${vehicle.model}")
@@ -85,7 +94,7 @@ fun PreviewVehicleListItem() {
         photoUri = null,
         vehicleType = VehicleType.SEDAN
     )
-    VehicleListItem(vehicle = vehicle)
+    VehicleListItem(vehicle = vehicle, onClick = {})
 }
 
 @Preview(showBackground = true)
