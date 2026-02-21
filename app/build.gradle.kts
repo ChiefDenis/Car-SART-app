@@ -48,7 +48,7 @@ dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.material3)
-    implementation(libs.androidx.compose.material.icons)
+    implementation(libs.androidx.compose.materialIcons)
 
     // Hilt (Switched to KSP)
     implementation(libs.hilt.android)
@@ -68,6 +68,7 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.biometric)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.gson)
 
     // Testing
     testImplementation(libs.junit)
