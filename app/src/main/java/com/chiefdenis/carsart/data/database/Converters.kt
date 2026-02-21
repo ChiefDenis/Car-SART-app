@@ -54,4 +54,14 @@ class Converters {
     fun toServiceType(name: String?): ServiceType? {
         return name?.let { ServiceType.valueOf(it) }
     }
+
+    @TypeConverter
+    fun fromMaintenancePriority(priority: MaintenancePriority?): String? {
+        return priority?.name
+    }
+
+    @TypeConverter
+    fun toMaintenancePriority(name: String?): MaintenancePriority? {
+        return name?.let { MaintenancePriority.valueOf(it) }
+    }
 }

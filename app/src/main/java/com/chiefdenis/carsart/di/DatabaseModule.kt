@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.chiefdenis.carsart.data.database.AppDatabase
 import com.chiefdenis.carsart.data.database.VehicleDao
 import com.chiefdenis.carsart.data.database.ServiceRecordDao
+import com.chiefdenis.carsart.data.database.MaintenanceTaskDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -50,5 +51,10 @@ object DatabaseModule {
     @Provides
     fun provideServiceRecordDao(appDatabase: AppDatabase): ServiceRecordDao {
         return appDatabase.serviceRecordDao()
+    }
+
+    @Provides
+    fun provideMaintenanceTaskDao(appDatabase: AppDatabase): MaintenanceTaskDao {
+        return appDatabase.maintenanceTaskDao()
     }
 }

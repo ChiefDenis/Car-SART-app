@@ -23,7 +23,10 @@ interface VehicleDao {
     fun getAll(): List<Vehicle>
 
     @Query("SELECT * FROM vehicles WHERE id = :id")
-    fun getVehicleById(id: UUID): Flow<Vehicle?>
+    fun getVehicleByIdFlow(id: UUID): Flow<Vehicle?>
+
+    @Query("SELECT * FROM vehicles WHERE id = :id")
+    fun getVehicleById(id: UUID): Vehicle?
 
     @Query("DELETE FROM vehicles WHERE id = :id")
     suspend fun deleteVehicleById(id: UUID): Int
