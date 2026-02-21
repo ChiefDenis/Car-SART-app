@@ -3,6 +3,10 @@ package com.chiefdenis.carsart
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DirectionsCar
@@ -18,10 +22,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.chiefdenis.carsart.ui.screens.AddServiceRecordScreen
 import com.chiefdenis.carsart.ui.screens.AddVehicleScreen
@@ -29,6 +30,9 @@ import com.chiefdenis.carsart.ui.screens.SettingsScreen
 import com.chiefdenis.carsart.ui.screens.VehicleDetailScreen
 import com.chiefdenis.carsart.ui.screens.VehiclesScreen
 import com.chiefdenis.carsart.ui.theme.CarSARTTheme
+import com.google.accompanist.navigation.animation.AnimatedNavHost
+import com.google.accompanist.navigation.animation.composable
+import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 import dagger.hilt.android.AndroidEntryPoint
 
 sealed class Screen(val route: String, val label: String? = null, val icon: ImageVector? = null) {
@@ -48,13 +52,14 @@ val items = listOf(
     Screen.Settings,
 )
 
+@OptIn(ExperimentalAnimationApi::class)
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             CarSARTTheme {
-                val navController = rememberNavController()
+                val navController = rememberAnimatedNavController()
                 Scaffold(
                     bottomBar = {
                         NavigationBar {
@@ -81,7 +86,7 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 ) { innerPadding ->
-                    NavHost(
+                    AnimatedNavHost(
                         navController,
                         startDestination = Screen.Vehicles.route,
                         Modifier.padding(innerPadding)
@@ -93,10 +98,20 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         composable(Screen.Settings.route) { SettingsScreen() }
-                        composable(Screen.AddVehicle.route) { AddVehicleScreen(onVehicleAdded = { navController.popBackStack() }) }
+                        composable(
+                            Screen.AddVehicle.route,
+                            enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }, animationSpec = tween(500)) },
+                            exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }, animationSpec = tween(500)) },
+                            popEnterTransition = { slideInHorizontally(initialOffsetX = { -1000 }, animationSpec = tween(500)) },
+                            popExitTransition = { slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(500)) }
+                        ) { AddVehicleScreen(onVehicleAdded = { navController.popBackStack() }) }
                         composable(
                             route = Screen.VehicleDetail.route,
-                            arguments = listOf(navArgument("vehicleId") { type = NavType.StringType })
+                            arguments = listOf(navArgument("vehicleId") { type = NavType.StringType }),
+                            enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }, animationSpec = tween(500)) },
+                            exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }, animationSpec = tween(500)) },
+                            popEnterTransition = { slideInHorizontally(initialOffsetX = { -1000 }, animationSpec = tween(500)) },
+                            popExitTransition = { slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(500)) }
                         ) { 
                             VehicleDetailScreen(
                                 onAddServiceRecord = { vehicleId -> navController.navigate(Screen.AddServiceRecord.createRoute(vehicleId.toString())) }
@@ -104,7 +119,11 @@ class MainActivity : ComponentActivity() {
                         }
                         composable(
                             route = Screen.AddServiceRecord.route,
-                            arguments = listOf(navArgument("vehicleId") { type = NavType.StringType })
+                            arguments = listOf(navArgument("vehicleId") { type = NavType.StringType }),
+                            enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }, animationSpec = tween(500)) },
+                            exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }, animationSpec = tween(500)) },
+                            popEnterTransition = { slideInHorizontally(initialOffsetX = { -1000 }, animationSpec = tween(500)) },
+                            popExitTransition = { slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(500)) }
                         ) {
                             AddServiceRecordScreen(onServiceRecordAdded = { navController.popBackStack() })
                         }

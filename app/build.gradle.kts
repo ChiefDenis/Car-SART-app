@@ -69,6 +69,7 @@ dependencies {
     implementation(libs.androidx.biometric)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.gson)
+    implementation(libs.accompanist.navigation.animation)
 
     // Testing
     testImplementation(libs.junit)

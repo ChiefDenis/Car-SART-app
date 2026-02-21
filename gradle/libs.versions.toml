@@ -22,6 +22,7 @@ hiltExt = "1.2.0"
 materialIcons = "1.6.7"
 hiltNavigationCompose = "1.2.0"
 gson = "2.10.1"
+accompanist = "0.32.0"
 
 [libraries]
 # AndroidX
@@ -58,6 +59,7 @@ sqlcipher = { group = "net.zetetic", name = "android-database-sqlcipher", versio
 
 # Other
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
+accompanist-navigation-animation = { group = "com.google.accompanist", name = "accompanist-navigation-animation", version.ref = "accompanist" }
 
 # Testing
 junit = { group = "junit", name = "junit", version.ref = "junit" }
