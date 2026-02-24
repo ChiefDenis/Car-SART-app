@@ -1,67 +1,55 @@
 package com.chiefdenis.carsart.data.database
 
 import androidx.room.TypeConverter
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import java.math.BigDecimal
 import java.util.UUID
 
 class Converters {
     @TypeConverter
-    fun fromUUID(uuid: UUID?): String? {
-        return uuid?.toString()
+    fun fromString(value: String): List<String> {
+        val listType = object : TypeToken<List<String>>() {}.type
+        return Gson().fromJson(value, listType)
     }
 
     @TypeConverter
-    fun toUUID(uuid: String?): UUID? {
-        return uuid?.let { UUID.fromString(it) }
+    fun fromList(list: List<String>): String {
+        val gson = Gson()
+        return gson.toJson(list)
     }
 
     @TypeConverter
-    fun fromBigDecimal(value: BigDecimal?): String? {
-        return value?.toPlainString()
+    fun fromBigDecimal(value: BigDecimal?): Double? {
+        return value?.toDouble()
     }
 
     @TypeConverter
-    fun toBigDecimal(value: String?): BigDecimal? {
+    fun toBigDecimal(value: Double?): BigDecimal? {
         return value?.let { BigDecimal(it) }
     }
 
     @TypeConverter
-    fun fromStringList(list: List<String>?): String? {
-        return list?.joinToString(separator = ",")
-    }
+    fun fromUUID(value: UUID?): String? = value?.toString()
 
     @TypeConverter
-    fun toStringList(string: String?): List<String>? {
-        return string?.split(",")?.map { it.trim() }
-    }
+    fun toUUID(value: String?): UUID? = value?.let { UUID.fromString(it) }
 
     @TypeConverter
-    fun fromVehicleType(type: VehicleType?): String? {
-        return type?.name
-    }
+    fun fromPriority(priority: MaintenancePriority): String = priority.name
 
     @TypeConverter
-    fun toVehicleType(name: String?): VehicleType? {
-        return name?.let { VehicleType.valueOf(it) }
-    }
+    fun toPriority(value: String): MaintenancePriority = MaintenancePriority.valueOf(value)
 
     @TypeConverter
-    fun fromServiceType(type: ServiceType?): String? {
-        return type?.name
-    }
+    fun fromVehicleType(vehicleType: VehicleType): String = vehicleType.name
 
     @TypeConverter
-    fun toServiceType(name: String?): ServiceType? {
-        return name?.let { ServiceType.valueOf(it) }
-    }
+    fun toVehicleType(value: String): VehicleType = VehicleType.valueOf(value)
 
     @TypeConverter
-    fun fromMaintenancePriority(priority: MaintenancePriority?): String? {
-        return priority?.name
-    }
+    fun fromServiceType(serviceType: ServiceType): String = serviceType.name
 
     @TypeConverter
-    fun toMaintenancePriority(name: String?): MaintenancePriority? {
-        return name?.let { MaintenancePriority.valueOf(it) }
-    }
+    fun toServiceType(value: String): ServiceType = ServiceType.valueOf(value)
 }

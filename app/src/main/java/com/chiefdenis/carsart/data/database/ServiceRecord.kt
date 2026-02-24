@@ -2,6 +2,7 @@ package com.chiefdenis.carsart.data.database
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.math.BigDecimal
 import java.util.UUID
@@ -19,7 +20,8 @@ enum class ServiceType {
             childColumns = ["vehicleId"],
             onDelete = ForeignKey.CASCADE
         )
-    ]
+    ],
+    indices = [Index(value = ["vehicleId"])]
 )
 data class ServiceRecord(
     @PrimaryKey val id: UUID = UUID.randomUUID(),

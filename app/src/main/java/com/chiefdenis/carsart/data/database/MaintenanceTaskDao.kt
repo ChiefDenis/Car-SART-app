@@ -24,4 +24,7 @@ interface MaintenanceTaskDao {
 
     @Query("DELETE FROM maintenance_tasks WHERE id = :id")
     suspend fun deleteTask(id: UUID): Int
+
+    @Query("SELECT * FROM maintenance_tasks WHERE id = :id")
+    suspend fun getTaskById(id: UUID): MaintenanceTask?
 }

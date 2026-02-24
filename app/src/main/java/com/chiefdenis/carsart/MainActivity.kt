@@ -22,7 +22,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.chiefdenis.carsart.ui.screens.AddServiceRecordScreen
 import com.chiefdenis.carsart.ui.screens.AddVehicleScreen
@@ -30,9 +33,6 @@ import com.chiefdenis.carsart.ui.screens.SettingsScreen
 import com.chiefdenis.carsart.ui.screens.VehicleDetailScreen
 import com.chiefdenis.carsart.ui.screens.VehiclesScreen
 import com.chiefdenis.carsart.ui.theme.CarSARTTheme
-import com.google.accompanist.navigation.animation.AnimatedNavHost
-import com.google.accompanist.navigation.animation.composable
-import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 import dagger.hilt.android.AndroidEntryPoint
 
 sealed class Screen(val route: String, val label: String? = null, val icon: ImageVector? = null) {
@@ -59,7 +59,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             CarSARTTheme {
-                val navController = rememberAnimatedNavController()
+                val navController = rememberNavController()
                 Scaffold(
                     bottomBar = {
                         NavigationBar {
@@ -86,7 +86,7 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 ) { innerPadding ->
-                    AnimatedNavHost(
+                    NavHost(
                         navController,
                         startDestination = Screen.Vehicles.route,
                         Modifier.padding(innerPadding)

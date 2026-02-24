@@ -11,8 +11,8 @@ class GetVehicle @Inject constructor(
     private val vehicleRepository: VehicleRepository
 ) {
     operator fun invoke(id: UUID): Flow<Vehicle?> {
-        return vehicleRepository.getVehicleById(id).map {
-            it?.toDomainModel()
+        return vehicleRepository.getVehicleByIdFlow(id).map { dbVehicle ->
+            dbVehicle?.toDomainModel()
         }
     }
 }

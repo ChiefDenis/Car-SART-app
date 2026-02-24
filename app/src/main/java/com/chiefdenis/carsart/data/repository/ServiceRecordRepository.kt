@@ -8,11 +8,11 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 interface ServiceRecordRepository {
-    suspend fun addServiceRecord(serviceRecord: ServiceRecord)
-    suspend fun updateServiceRecord(serviceRecord: ServiceRecord)
+    suspend fun addServiceRecord(serviceRecord: ServiceRecord): Long
+    suspend fun updateServiceRecord(serviceRecord: ServiceRecord): Int
     fun getServiceRecordsForVehicle(vehicleId: UUID): Flow<List<ServiceRecord>>
     suspend fun getServiceRecordById(id: UUID): ServiceRecord?
-    suspend fun deleteServiceRecordById(id: UUID)
+    suspend fun deleteServiceRecordById(id: UUID): Int
 }
 
 @Singleton
@@ -20,12 +20,12 @@ class ServiceRecordRepositoryImpl @Inject constructor(
     private val serviceRecordDao: ServiceRecordDao
 ) : ServiceRecordRepository {
 
-    override suspend fun addServiceRecord(serviceRecord: ServiceRecord) {
-        serviceRecordDao.insert(serviceRecord)
+    override suspend fun addServiceRecord(serviceRecord: ServiceRecord): Long {
+        return serviceRecordDao.insert(serviceRecord)
     }
 
-    override suspend fun updateServiceRecord(serviceRecord: ServiceRecord) {
-        serviceRecordDao.update(serviceRecord.copy(updatedAt = System.currentTimeMillis()))
+    override suspend fun updateServiceRecord(serviceRecord: ServiceRecord): Int {
+        return serviceRecordDao.update(serviceRecord.copy(updatedAt = System.currentTimeMillis()))
     }
 
     override fun getServiceRecordsForVehicle(vehicleId: UUID): Flow<List<ServiceRecord>> {
@@ -36,7 +36,7 @@ class ServiceRecordRepositoryImpl @Inject constructor(
         return serviceRecordDao.getServiceRecordById(id)
     }
 
-    override suspend fun deleteServiceRecordById(id: UUID) {
-        serviceRecordDao.deleteServiceRecordById(id)
+    override suspend fun deleteServiceRecordById(id: UUID): Int {
+        return serviceRecordDao.deleteServiceRecordById(id)
     }
 }

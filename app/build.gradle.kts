@@ -22,6 +22,12 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
+    }
+
+    ksp {
+        arg("room.generateKotlin", "true")
+        arg("hilt.correctErrorTypes", "true")
     }
     
     compileOptions {
@@ -71,8 +77,7 @@ dependencies {
     implementation(libs.androidx.biometric)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.gson)
-    implementation(libs.accompanist.navigation.animation)
-    implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.androidx.work.runtime)
 
     // Testing
     testImplementation(libs.junit)

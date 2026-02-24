@@ -2,6 +2,7 @@ package com.chiefdenis.carsart.data.database
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.util.UUID
 
@@ -18,7 +19,8 @@ enum class MaintenancePriority {
             childColumns = ["vehicleId"],
             onDelete = ForeignKey.CASCADE
         )
-    ]
+    ],
+    indices = [Index(value = ["vehicleId"])]
 )
 data class MaintenanceTask(
     @PrimaryKey val id: UUID = UUID.randomUUID(),

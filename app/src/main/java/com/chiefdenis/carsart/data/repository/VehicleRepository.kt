@@ -8,13 +8,13 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 interface VehicleRepository {
-    suspend fun addVehicle(vehicle: Vehicle)
-    suspend fun updateVehicle(vehicle: Vehicle)
+    suspend fun addVehicle(vehicle: Vehicle): Long
+    suspend fun updateVehicle(vehicle: Vehicle): Int
     fun getAllVehicles(): Flow<List<Vehicle>>
     fun getVehicleByIdFlow(id: UUID): Flow<Vehicle?>
     fun getVehicleById(id: UUID): Vehicle?
-    suspend fun deleteVehicleById(id: UUID)
-    suspend fun updateMileage(id: UUID, mileage: Int)
+    suspend fun deleteVehicleById(id: UUID): Int
+    suspend fun updateMileage(id: UUID, mileage: Int): Int
     fun searchVehicles(query: String): Flow<List<Vehicle>>
 }
 
@@ -23,12 +23,12 @@ class VehicleRepositoryImpl @Inject constructor(
     private val vehicleDao: VehicleDao
 ) : VehicleRepository {
 
-    override suspend fun addVehicle(vehicle: Vehicle) {
-        vehicleDao.insert(vehicle)
+    override suspend fun addVehicle(vehicle: Vehicle): Long {
+        return vehicleDao.insert(vehicle)
     }
 
-    override suspend fun updateVehicle(vehicle: Vehicle) {
-        vehicleDao.update(vehicle.copy(updatedAt = System.currentTimeMillis()))
+    override suspend fun updateVehicle(vehicle: Vehicle): Int {
+        return vehicleDao.update(vehicle.copy(updatedAt = System.currentTimeMillis()))
     }
 
     override fun getAllVehicles(): Flow<List<Vehicle>> {
@@ -43,12 +43,12 @@ class VehicleRepositoryImpl @Inject constructor(
         return vehicleDao.getVehicleById(id)
     }
 
-    override suspend fun deleteVehicleById(id: UUID) {
-        vehicleDao.deleteVehicleById(id)
+    override suspend fun deleteVehicleById(id: UUID): Int {
+        return vehicleDao.deleteVehicleById(id)
     }
 
-    override suspend fun updateMileage(id: UUID, mileage: Int) {
-        vehicleDao.updateMileage(id, mileage, System.currentTimeMillis())
+    override suspend fun updateMileage(id: UUID, mileage: Int): Int {
+        return vehicleDao.updateMileage(id, mileage, System.currentTimeMillis())
     }
 
     override fun searchVehicles(query: String): Flow<List<Vehicle>> {
