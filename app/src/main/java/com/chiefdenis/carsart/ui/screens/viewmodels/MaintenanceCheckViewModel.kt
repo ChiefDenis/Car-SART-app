@@ -37,7 +37,7 @@ class MaintenanceCheckViewModel @Inject constructor(
         viewModelScope.launch {
             val mileage = _uiState.value.mileage.toIntOrNull() ?: 0
             maintenanceRepository.markTaskAsDone(UUID.fromString(taskId), mileage)
-            // Create a new ServiceRecord as well
+            // TODO: Create a new ServiceRecord as well
         }
     }
 }

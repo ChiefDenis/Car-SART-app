@@ -1,16 +1,18 @@
 package com.chiefdenis.carsart.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.chiefdenis.carsart.ui.screens.SettingsScreen
-import com.chiefdenis.carsart.ui.screens.VehiclesScreen
-import androidx.navigation.NavHostController
-import com.chiefdenis.carsart.ui.screens.AddVehicleScreen
-import com.chiefdenis.carsart.ui.screens.VehicleDetailScreen
-import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import androidx.navigation.navDeepLink
 import com.chiefdenis.carsart.ui.screens.AddServiceRecordScreen
+import com.chiefdenis.carsart.ui.screens.AddVehicleScreen
+import com.chiefdenis.carsart.ui.screens.MaintenanceCheckScreen
+import com.chiefdenis.carsart.ui.screens.SettingsScreen
+import com.chiefdenis.carsart.ui.screens.VehicleDetailScreen
+import com.chiefdenis.carsart.ui.screens.VehiclesScreen
 
 sealed class Screen(val route: String) {
     object Vehicles : Screen("vehicles")
@@ -21,6 +23,10 @@ sealed class Screen(val route: String) {
     }
     object AddServiceRecord : Screen("add_service_record/{vehicleId}") {
         fun createRoute(vehicleId: String) = "add_service_record/$vehicleId"
+    }
+    object MaintenanceCheck : Screen("maintenance/check/{taskId}") {
+        fun createRoute(taskId: String) = "maintenance/check/$taskId"
+        const val uri = "carsart://maintenance/check"
     }
 }
 
@@ -50,6 +56,16 @@ fun AppNavigation(navController: NavHostController) {
             arguments = listOf(navArgument("vehicleId") { type = NavType.StringType })
         ) {
             AddServiceRecordScreen(onServiceRecordAdded = { navController.popBackStack() })
+        }
+        composable(
+            route = Screen.MaintenanceCheck.route,
+            arguments = listOf(navArgument("taskId") { type = NavType.StringType }),
+            deepLinks = listOf(navDeepLink { uriPattern = "${Screen.MaintenanceCheck.uri}/{taskId}" })
+        ) { backStackEntry ->
+            val taskId = backStackEntry.arguments?.getString("taskId")
+            if (taskId != null) {
+                MaintenanceCheckScreen(navController = navController, taskId = taskId)
+            }
         }
     }
 }

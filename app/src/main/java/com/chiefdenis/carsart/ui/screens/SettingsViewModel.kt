@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.chiefdenis.carsart.data.repository.AppCurrency
 import com.chiefdenis.carsart.data.repository.AppUnitSystem
+import com.chiefdenis.carsart.data.repository.UserPreferences
 import com.chiefdenis.carsart.data.repository.UserPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -17,11 +18,12 @@ class SettingsViewModel @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
 
-    val currency: StateFlow<AppCurrency> = userPreferencesRepository.currency
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AppCurrency.NGN)
-
-    val unitSystem: StateFlow<AppUnitSystem> = userPreferencesRepository.unitSystem
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AppUnitSystem.METRIC)
+    val settings: StateFlow<UserPreferences> = userPreferencesRepository.userPreferencesFlow
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = UserPreferences(AppCurrency.NGN, AppUnitSystem.METRIC, true, 7)
+        )
 
     fun setCurrency(currency: AppCurrency) {
         viewModelScope.launch {
@@ -32,6 +34,18 @@ class SettingsViewModel @Inject constructor(
     fun setUnitSystem(unitSystem: AppUnitSystem) {
         viewModelScope.launch {
             userPreferencesRepository.setUnitSystem(unitSystem)
+        }
+    }
+
+    fun setMaintenanceRemindersEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.setMaintenanceRemindersEnabled(enabled)
+        }
+    }
+
+    fun setAdvanceWarningDays(days: Int) {
+        viewModelScope.launch {
+            userPreferencesRepository.setAdvanceWarningDays(days)
         }
     }
 }

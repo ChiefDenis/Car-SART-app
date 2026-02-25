@@ -3,12 +3,10 @@ package com.chiefdenis.carsart.workers
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.app.TaskStackBuilder
 import android.content.Context
 import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
-import androidx.core.net.toUri
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
@@ -18,7 +16,6 @@ import com.chiefdenis.carsart.data.database.MaintenanceTask
 import com.chiefdenis.carsart.data.database.Vehicle
 import com.chiefdenis.carsart.data.repository.MaintenanceRepository
 import com.chiefdenis.carsart.data.repository.VehicleRepository
-import com.chiefdenis.carsart.receiver.NotificationActionReceiver
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.flow.first
@@ -36,28 +33,27 @@ class MaintenanceWorker @AssistedInject constructor(
     override suspend fun doWork(): Result {
         return try {
             val activeTasks = maintenanceRepository.getActiveTasks().first()
+            if (activeTasks.isEmpty()) return Result.success()
+
             val allVehicles = vehicleRepository.getAllVehicles().first().associateBy { it.id }
 
             activeTasks.forEach { task ->
                 val vehicle = allVehicles[task.vehicleId]
                 if (vehicle != null) {
-                    checkTaskAndNotify(task, vehicle)
+                    checkTaskAndNotify(task, vehicle, 7) // Using a fixed value for now.
                 }
             }
             Result.success()
         } catch (e: Exception) {
-            // For debugging purposes, in production you might want to handle this differently
             e.printStackTrace()
             Result.failure()
         }
     }
 
-    private fun checkTaskAndNotify(task: MaintenanceTask, vehicle: Vehicle) {
-        // Default to now for date and 0 for mileage if never checked
-        val lastCheckedDate = task.lastCheckedDate ?: System.currentTimeMillis()
+    private fun checkTaskAndNotify(task: MaintenanceTask, vehicle: Vehicle, advanceWarningDays: Int) {
+        val lastCheckedDate = task.lastCheckedDate ?: vehicle.purchaseDate ?: System.currentTimeMillis()
         val lastCheckedMileage = task.lastCheckedMileage ?: 0
 
-        // --- Date-based check ---
         val nextDueDateCalendar = Calendar.getInstance().apply {
             timeInMillis = lastCheckedDate
             add(Calendar.MONTH, task.intervalMonths)
@@ -65,17 +61,11 @@ class MaintenanceWorker @AssistedInject constructor(
         val nextDueDateMillis = nextDueDateCalendar.timeInMillis
         val daysUntilDue = TimeUnit.MILLISECONDS.toDays(nextDueDateMillis - System.currentTimeMillis())
 
-        // --- Mileage-based check ---
-        val nextDueMileage = if (task.intervalMileageKm != null) {
-            lastCheckedMileage + task.intervalMileageKm
-        } else null
-        val mileageUntilDue = nextDueMileage?.let { it - vehicle.currentMileage }
-
-        val advanceWarningDays = 7 // Default, will be from settings later
-        val advanceWarningKm = 500   // Default
+        val nextDueMileage = task.intervalMileageKm?.let { lastCheckedMileage + it }
+        val mileageUntilDue = nextDueMileage?.minus(vehicle.currentMileage)
 
         val isDueByDate = daysUntilDue in 0..advanceWarningDays
-        val isDueByMileage = mileageUntilDue != null && mileageUntilDue in 0..advanceWarningKm
+        val isDueByMileage = mileageUntilDue != null && mileageUntilDue in 0..500
 
         if (isDueByDate || isDueByMileage) {
             val reason = when {
@@ -84,11 +74,7 @@ class MaintenanceWorker @AssistedInject constructor(
                 isDueByMileage -> "due in $mileageUntilDue km"
                 else -> "due soon"
             }
-            showNotification(
-                vehicle = vehicle,
-                task = task,
-                reason = reason
-            )
+            showNotification(vehicle, task, reason)
         }
     }
 
@@ -101,52 +87,18 @@ class MaintenanceWorker @AssistedInject constructor(
             notificationManager.createNotificationChannel(channel)
         }
 
-        // 1. Log Check Action -> Deep Link to MaintenanceCheckScreen
-        val logCheckIntent = Intent(
-            Intent.ACTION_VIEW,
-            "carsart://maintenance/check/${task.id}".toUri(),
-            appContext,
-            MainActivity::class.java
-        )
-        val logCheckPendingIntent: PendingIntent = TaskStackBuilder.create(appContext).run {
-            addNextIntentWithParentStack(logCheckIntent)
-            getPendingIntent(task.id.hashCode(), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-        }
-
-        // 2. Snooze Action -> Broadcast
-        val snoozeIntent = Intent(appContext, NotificationActionReceiver::class.java).apply {
-            action = NotificationActionReceiver.ACTION_SNOOZE
-            putExtra(NotificationActionReceiver.EXTRA_TASK_ID, task.id.toString())
-        }
-        val snoozePendingIntent = PendingIntent.getBroadcast(
-            appContext, 
-            task.id.hashCode() + 1, 
-            snoozeIntent, 
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        // 3. Done Action -> Broadcast
-        val doneIntent = Intent(appContext, NotificationActionReceiver::class.java).apply {
-            action = NotificationActionReceiver.ACTION_DONE
-            putExtra(NotificationActionReceiver.EXTRA_TASK_ID, task.id.toString())
-            putExtra(NotificationActionReceiver.EXTRA_VEHICLE_MILEAGE, vehicle.currentMileage)
-        }
-        val donePendingIntent = PendingIntent.getBroadcast(
-            appContext, 
-            task.id.hashCode() + 2, 
-            doneIntent, 
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
+        // Placeholder intents. These will be replaced with real implementations.
+        val placeholderIntent = PendingIntent.getActivity(appContext, 0, Intent(appContext, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE)
 
         val notification = NotificationCompat.Builder(appContext, channelId)
-            .setSmallIcon(R.drawable.ic_notification_icon) // Replace with a real icon
+            .setSmallIcon(R.drawable.ic_notification_icon) // Placeholder icon
             .setContentTitle("${vehicle.nickname}: ${task.taskName}")
             .setContentText("This task is $reason.")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
-            .addAction(R.drawable.ic_log_check, "Log Check", logCheckPendingIntent) // Replace with real icons
-            .addAction(R.drawable.ic_snooze, "Snooze 3 days", snoozePendingIntent)
-            .addAction(R.drawable.ic_done, "Done", donePendingIntent)
+            .addAction(R.drawable.ic_log_check, "Log Check", placeholderIntent) 
+            .addAction(R.drawable.ic_snooze, "Snooze 3 days", placeholderIntent)
+            .addAction(R.drawable.ic_done, "Done", placeholderIntent)
             .build()
 
         notificationManager.notify(task.id.hashCode(), notification)

@@ -3,6 +3,7 @@ package com.chiefdenis.carsart
 import android.app.Application
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
+import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.chiefdenis.carsart.workers.MaintenanceWorker
@@ -34,7 +35,7 @@ class CarSartApplication : Application(), Configuration.Provider {
         
         WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
             "maintenance_worker",
-            androidx.work.ExistingPeriodicWorkPolicy.KEEP,
+            ExistingPeriodicWorkPolicy.KEEP,
             repeatingRequest
         )
     }

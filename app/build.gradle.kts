@@ -22,12 +22,6 @@ android {
 
     buildFeatures {
         compose = true
-        buildConfig = true
-    }
-
-    ksp {
-        arg("room.generateKotlin", "true")
-        arg("hilt.correctErrorTypes", "true")
     }
     
     compileOptions {

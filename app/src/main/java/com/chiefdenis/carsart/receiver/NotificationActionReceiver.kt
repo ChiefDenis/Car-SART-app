@@ -21,13 +21,14 @@ class NotificationActionReceiver : BroadcastReceiver() {
 
         when (intent.action) {
             ACTION_SNOOZE -> {
-                // Implement snooze logic here, e.g., reschedule the worker
+                // TODO: Implement snooze logic, e.g., reschedule the worker for 3 days later
             }
             ACTION_DONE -> {
                 if (taskId != null) {
-                    val mileage = intent.getIntExtra(EXTRA_VEHICLE_MILEAGE, 0)
+                    val currentMileage = intent.getIntExtra(EXTRA_VEHICLE_MILEAGE, 0)
+                    // This should be done on a background thread, GlobalScope is used for simplicity here
                     GlobalScope.launch {
-                        maintenanceRepository.markTaskAsDone(taskId, mileage)
+                        maintenanceRepository.markTaskAsDone(taskId, currentMileage)
                     }
                 }
             }
