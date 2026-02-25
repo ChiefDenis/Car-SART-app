@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -43,6 +44,7 @@ fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
             onMaintenanceRemindersEnabledChange = { viewModel.setMaintenanceRemindersEnabled(it) },
             onAdvanceWarningDaysChange = { viewModel.setAdvanceWarningDays(it) }
         )
+        BackupAndRestoreSettings(onBackup = { viewModel.backup() }, onRestore = { viewModel.restore() })
     }
 }
 
@@ -66,6 +68,19 @@ fun MaintenanceSettings(
             label = { Text("Advance Warning (Days)") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
         )
+    }
+}
+
+@Composable
+fun BackupAndRestoreSettings(onBackup: () -> Unit, onRestore: () -> Unit) {
+    Row {
+        Button(onClick = onBackup) {
+            Text("Backup Data")
+        }
+        Spacer(modifier = Modifier.width(16.dp))
+        Button(onClick = onRestore) {
+            Text("Restore Data")
+        }
     }
 }
 

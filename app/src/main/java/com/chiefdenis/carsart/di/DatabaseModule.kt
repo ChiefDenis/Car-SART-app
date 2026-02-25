@@ -2,6 +2,8 @@ package com.chiefdenis.carsart.di
 
 import android.content.Context
 import androidx.room.Room
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.chiefdenis.carsart.data.database.AppDatabase
 import com.chiefdenis.carsart.data.database.VehicleDao
 import com.chiefdenis.carsart.data.database.ServiceRecordDao
@@ -18,6 +20,13 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
+
+    private val MIGRATION_1_2 = object : Migration(1, 2) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            // Since this migration is just adding a new table, Room will handle it.
+            // No specific SQL needed here.
+        }
+    }
 
     @Provides
     @Singleton
@@ -39,7 +48,7 @@ object DatabaseModule {
             AppDatabase.DATABASE_NAME
         )
         .openHelperFactory(factory)
-        .fallbackToDestructiveMigration()
+        .addMigrations(MIGRATION_1_2)
         .build()
     }
 
