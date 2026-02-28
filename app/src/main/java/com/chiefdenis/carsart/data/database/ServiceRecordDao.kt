@@ -27,4 +27,7 @@ interface ServiceRecordDao {
 
     @Query("DELETE FROM service_records WHERE id = :id")
     suspend fun deleteServiceRecordById(id: UUID): Int
+
+    @Query("DELETE FROM service_records")
+    suspend fun deleteAll(): Int
 }

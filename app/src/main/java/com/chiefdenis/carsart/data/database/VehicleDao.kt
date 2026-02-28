@@ -37,4 +37,7 @@ interface VehicleDao {
     // FTS Search
     @Query("SELECT * FROM vehicles WHERE nickname LIKE '%' || :query || '%' OR make LIKE '%' || :query || '%' OR model LIKE '%' || :query || '%' COLLATE NOCASE")
     fun searchVehicles(query: String): Flow<List<Vehicle>>
+
+    @Query("DELETE FROM vehicles")
+    suspend fun deleteAll(): Int
 }

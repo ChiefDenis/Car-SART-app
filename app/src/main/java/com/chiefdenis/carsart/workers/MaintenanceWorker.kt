@@ -50,7 +50,7 @@ class MaintenanceWorker @AssistedInject constructor(
         }
     }
 
-    private fun checkTaskAndNotify(task: MaintenanceTask, vehicle: Vehicle, advanceWarningDays: Int) {
+    private fun checkTaskAndNotify(task: MaintenanceTask, vehicle: Vehicle, advanceWarningDays: Int): Boolean {
         val lastCheckedDate = task.lastCheckedDate ?: vehicle.purchaseDate ?: System.currentTimeMillis()
         val lastCheckedMileage = task.lastCheckedMileage ?: 0
 
@@ -75,10 +75,12 @@ class MaintenanceWorker @AssistedInject constructor(
                 else -> "due soon"
             }
             showNotification(vehicle, task, reason)
+            return true
         }
+        return false
     }
 
-    private fun showNotification(vehicle: Vehicle, task: MaintenanceTask, reason: String) {
+    private fun showNotification(vehicle: Vehicle, task: MaintenanceTask, reason: String): Boolean {
         val notificationManager = appContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val channelId = "maintenance_reminders"
 
@@ -102,5 +104,6 @@ class MaintenanceWorker @AssistedInject constructor(
             .build()
 
         notificationManager.notify(task.id.hashCode(), notification)
+        return true
     }
 }

@@ -53,27 +53,31 @@ class UserPreferencesRepository @Inject constructor(@ApplicationContext private 
             UserPreferences(currency, unitSystem, maintenanceRemindersEnabled, advanceWarningDays)
         }
 
-    suspend fun setCurrency(currency: AppCurrency) {
+    suspend fun setCurrency(currency: AppCurrency): Boolean {
         context.dataStore.edit {
             it[PreferencesKeys.CURRENCY] = currency.name
         }
+        return true
     }
 
-    suspend fun setUnitSystem(unitSystem: AppUnitSystem) {
+    suspend fun setUnitSystem(unitSystem: AppUnitSystem): Boolean {
         context.dataStore.edit {
             it[PreferencesKeys.UNIT_SYSTEM] = unitSystem.name
         }
+        return true
     }
 
-    suspend fun setMaintenanceRemindersEnabled(enabled: Boolean) {
+    suspend fun setMaintenanceRemindersEnabled(enabled: Boolean): Boolean {
         context.dataStore.edit {
             it[PreferencesKeys.MAINTENANCE_REMINDERS_ENABLED] = enabled
         }
+        return true
     }
 
-    suspend fun setAdvanceWarningDays(days: Int) {
+    suspend fun setAdvanceWarningDays(days: Int): Boolean {
         context.dataStore.edit {
             it[PreferencesKeys.ADVANCE_WARNING_DAYS] = days
         }
+        return true
     }
 }

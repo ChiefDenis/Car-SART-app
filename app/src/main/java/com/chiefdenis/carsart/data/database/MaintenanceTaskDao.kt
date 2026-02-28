@@ -22,9 +22,15 @@ interface MaintenanceTaskDao {
     @Query("SELECT * FROM maintenance_tasks WHERE isActive = 1")
     fun getActiveTasks(): Flow<List<MaintenanceTask>>
 
+    @Query("SELECT * FROM maintenance_tasks")
+    fun getAll(): List<MaintenanceTask>
+
     @Query("DELETE FROM maintenance_tasks WHERE id = :id")
     suspend fun deleteTask(id: UUID): Int
 
     @Query("SELECT * FROM maintenance_tasks WHERE id = :id")
     suspend fun getTaskById(id: UUID): MaintenanceTask?
+
+    @Query("DELETE FROM maintenance_tasks")
+    suspend fun deleteAll(): Int
 }

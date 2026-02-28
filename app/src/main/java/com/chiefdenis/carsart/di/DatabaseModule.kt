@@ -8,6 +8,7 @@ import com.chiefdenis.carsart.data.database.AppDatabase
 import com.chiefdenis.carsart.data.database.VehicleDao
 import com.chiefdenis.carsart.data.database.ServiceRecordDao
 import com.chiefdenis.carsart.data.database.MaintenanceTaskDao
+import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -30,18 +31,18 @@ object DatabaseModule {
 
     @Provides
     @Singleton
-    fun providePassphrase(): () -> ByteArray {
+    fun providePassphrase(): ByteArray {
         // TODO: Replace with a secure key provider
-        return { SQLiteDatabase.getBytes("default-passphrase".toCharArray()) }
+        return SQLiteDatabase.getBytes("default-passphrase".toCharArray())
     }
 
     @Provides
     @Singleton
     fun provideAppDatabase(
         @ApplicationContext context: Context,
-        passphraseProvider: () -> ByteArray
+        passphrase: ByteArray
     ): AppDatabase {
-        val factory = SupportFactory(passphraseProvider())
+        val factory = SupportFactory(passphrase)
         return Room.databaseBuilder(
             context,
             AppDatabase::class.java,
@@ -65,5 +66,11 @@ object DatabaseModule {
     @Provides
     fun provideMaintenanceTaskDao(appDatabase: AppDatabase): MaintenanceTaskDao {
         return appDatabase.maintenanceTaskDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideGson(): Gson {
+        return Gson()
     }
 }

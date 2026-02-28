@@ -13,7 +13,7 @@ interface MaintenanceRepository {
     fun getTasksForVehicle(vehicleId: UUID): Flow<List<MaintenanceTask>>
     fun getActiveTasks(): Flow<List<MaintenanceTask>>
     suspend fun deleteTask(id: UUID): Int
-    suspend fun markTaskAsDone(taskId: UUID, currentMileage: Int)
+    suspend fun markTaskAsDone(taskId: UUID, currentMileage: Int): Boolean
 }
 
 @Singleton
@@ -41,7 +41,7 @@ class MaintenanceRepositoryImpl @Inject constructor(
         return maintenanceTaskDao.deleteTask(id)
     }
 
-    override suspend fun markTaskAsDone(taskId: UUID, currentMileage: Int) {
+    override suspend fun markTaskAsDone(taskId: UUID, currentMileage: Int): Boolean {
         val task = maintenanceTaskDao.getTaskById(taskId)
         if (task != null) {
             val updatedTask = task.copy(
@@ -50,6 +50,8 @@ class MaintenanceRepositoryImpl @Inject constructor(
                 updatedAt = System.currentTimeMillis()
             )
             maintenanceTaskDao.update(updatedTask)
+            return true
         }
+        return false
     }
 }
