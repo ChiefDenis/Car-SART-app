@@ -30,6 +30,9 @@ class AddVehicleViewModel @Inject constructor(
     private val _mileage = MutableStateFlow("")
     val mileage = _mileage.asStateFlow()
 
+    private val _selectedVehicleType = MutableStateFlow(VehicleType.SEDAN)
+    val selectedVehicleType = _selectedVehicleType.asStateFlow()
+
     fun onNicknameChange(nickname: String) {
         _nickname.value = nickname
     }
@@ -50,6 +53,10 @@ class AddVehicleViewModel @Inject constructor(
         _mileage.value = mileage
     }
 
+    fun onVehicleTypeChange(vehicleType: VehicleType) {
+        _selectedVehicleType.value = vehicleType
+    }
+
     fun saveVehicle() {
         viewModelScope.launch {
             addVehicle(
@@ -61,7 +68,7 @@ class AddVehicleViewModel @Inject constructor(
                 licensePlate = null,
                 currentMileage = _mileage.value.toInt(),
                 photoUri = null,
-                vehicleType = VehicleType.SEDAN
+                vehicleType = _selectedVehicleType.value
             )
         }
     }
