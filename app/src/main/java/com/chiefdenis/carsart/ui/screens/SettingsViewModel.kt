@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.chiefdenis.carsart.data.repository.AppCurrency
 import com.chiefdenis.carsart.data.repository.AppUnitSystem
+import com.chiefdenis.carsart.data.repository.ThemeMode
 import com.chiefdenis.carsart.data.repository.UserPreferences
 import com.chiefdenis.carsart.data.repository.UserPreferencesRepository
 import com.chiefdenis.carsart.utils.BackupManager
@@ -24,7 +25,7 @@ class SettingsViewModel @Inject constructor(
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = UserPreferences(AppCurrency.NGN, AppUnitSystem.METRIC, true, 7)
+            initialValue = UserPreferences(AppCurrency.NGN, AppUnitSystem.METRIC, ThemeMode.SYSTEM, true, 7)
         )
 
     fun setCurrency(currency: AppCurrency) {
@@ -36,6 +37,12 @@ class SettingsViewModel @Inject constructor(
     fun setUnitSystem(unitSystem: AppUnitSystem) {
         viewModelScope.launch {
             userPreferencesRepository.setUnitSystem(unitSystem)
+        }
+    }
+
+    fun setThemeMode(themeMode: ThemeMode) {
+        viewModelScope.launch {
+            userPreferencesRepository.setThemeMode(themeMode)
         }
     }
 

@@ -13,6 +13,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.platform.LocalContext
+import com.chiefdenis.carsart.data.repository.ThemeMode
 
 private val DarkColorScheme = darkColorScheme(
     primary = PrimaryDark,
@@ -110,11 +111,18 @@ object CarSartMotion {
 
 @Composable
 fun CarSARTTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    themeMode: ThemeMode = ThemeMode.SYSTEM,
     // Dynamic color is available on Android S+ and is part of Material 3.
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
+    val systemDarkTheme = isSystemInDarkTheme()
+    val darkTheme = when (themeMode) {
+        ThemeMode.LIGHT -> false
+        ThemeMode.DARK -> true
+        ThemeMode.SYSTEM -> systemDarkTheme
+    }
+    
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current

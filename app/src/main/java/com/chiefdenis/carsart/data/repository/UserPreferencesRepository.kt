@@ -16,6 +16,10 @@ import javax.inject.Singleton
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
+enum class ThemeMode {
+    LIGHT, DARK, SYSTEM
+}
+
 enum class AppCurrency(val code: String) {
     NGN("NGN"),
     USD("USD"),
@@ -30,6 +34,7 @@ enum class AppUnitSystem {
 data class UserPreferences(
     val currency: AppCurrency = AppCurrency.NGN,
     val unitSystem: AppUnitSystem = AppUnitSystem.METRIC,
+    val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val maintenanceRemindersEnabled: Boolean = true,
     val advanceWarningDays: Int = 7
 )
@@ -40,6 +45,7 @@ class UserPreferencesRepository @Inject constructor(@ApplicationContext private 
     private object PreferencesKeys {
         val CURRENCY = stringPreferencesKey("currency")
         val UNIT_SYSTEM = stringPreferencesKey("unit_system")
+        val THEME_MODE = stringPreferencesKey("theme_mode")
         val MAINTENANCE_REMINDERS_ENABLED = booleanPreferencesKey("maintenance_reminders_enabled")
         val ADVANCE_WARNING_DAYS = intPreferencesKey("advance_warning_days")
     }
@@ -48,9 +54,10 @@ class UserPreferencesRepository @Inject constructor(@ApplicationContext private 
         .map { preferences ->
             val currency = AppCurrency.valueOf(preferences[PreferencesKeys.CURRENCY] ?: AppCurrency.NGN.name)
             val unitSystem = AppUnitSystem.valueOf(preferences[PreferencesKeys.UNIT_SYSTEM] ?: AppUnitSystem.METRIC.name)
+            val themeMode = ThemeMode.valueOf(preferences[PreferencesKeys.THEME_MODE] ?: ThemeMode.SYSTEM.name)
             val maintenanceRemindersEnabled = preferences[PreferencesKeys.MAINTENANCE_REMINDERS_ENABLED] ?: true
             val advanceWarningDays = preferences[PreferencesKeys.ADVANCE_WARNING_DAYS] ?: 7
-            UserPreferences(currency, unitSystem, maintenanceRemindersEnabled, advanceWarningDays)
+            UserPreferences(currency, unitSystem, themeMode, maintenanceRemindersEnabled, advanceWarningDays)
         }
 
     suspend fun setCurrency(currency: AppCurrency): Boolean {
@@ -63,6 +70,13 @@ class UserPreferencesRepository @Inject constructor(@ApplicationContext private 
     suspend fun setUnitSystem(unitSystem: AppUnitSystem): Boolean {
         context.dataStore.edit {
             it[PreferencesKeys.UNIT_SYSTEM] = unitSystem.name
+        }
+        return true
+    }
+
+    suspend fun setThemeMode(themeMode: ThemeMode): Boolean {
+        context.dataStore.edit {
+            it[PreferencesKeys.THEME_MODE] = themeMode.name
         }
         return true
     }
