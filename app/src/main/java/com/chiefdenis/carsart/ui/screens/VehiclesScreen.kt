@@ -27,9 +27,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.chiefdenis.carsart.data.database.VehicleType
 import com.chiefdenis.carsart.domain.model.Vehicle
+import com.chiefdenis.carsart.ui.theme.CarSARTTheme
 import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -42,6 +45,22 @@ fun VehiclesScreen(
     val vehicles by viewModel.vehicles.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
+    VehiclesScreenContent(
+        vehicles = vehicles,
+        isLoading = isLoading,
+        onAddVehicle = onAddVehicle,
+        onVehicleClick = onVehicleClick
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun VehiclesScreenContent(
+    vehicles: List<Vehicle>,
+    isLoading: Boolean,
+    onAddVehicle: () -> Unit,
+    onVehicleClick: (UUID) -> Unit
+) {
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("My Vehicles") })
@@ -98,6 +117,58 @@ fun EmptyVehiclesState(onAddVehicle: () -> Unit) {
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(16.dp)
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun DefaultPreview() {
+    CarSARTTheme {
+        VehiclesScreenContent(
+            vehicles = listOf(
+                Vehicle(
+                    id = UUID.randomUUID(),
+                    make = "Toyota",
+                    model = "Camry",
+                    year = 2021,
+                    nickname = "My Camry",
+                    currentMileage = 15000,
+                    vin = null,
+                    licensePlate = null,
+                    photoUri = null,
+                    vehicleType = VehicleType.SEDAN
+                )
+            ),
+            isLoading = false,
+            onAddVehicle = {},
+            onVehicleClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun EmptyVehiclesPreview() {
+    CarSARTTheme {
+        VehiclesScreenContent(
+            vehicles = emptyList(),
+            isLoading = false,
+            onAddVehicle = {},
+            onVehicleClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun LoadingPreview() {
+    CarSARTTheme {
+        VehiclesScreenContent(
+            vehicles = emptyList(),
+            isLoading = true,
+            onAddVehicle = {},
+            onVehicleClick = {}
         )
     }
 }
