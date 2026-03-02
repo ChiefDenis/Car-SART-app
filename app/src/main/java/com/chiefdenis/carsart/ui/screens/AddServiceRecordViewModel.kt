@@ -52,6 +52,12 @@ class AddServiceRecordViewModel @Inject constructor(
     private val _nextServiceDueMileage = MutableStateFlow<String?>(null)
     val nextServiceDueMileage = _nextServiceDueMileage.asStateFlow()
 
+    private val _interval = MutableStateFlow<Int?>(null)
+    val interval = _interval.asStateFlow()
+
+    private val _intervalType = MutableStateFlow(ServiceIntervalType.MONTHS)
+    val intervalType = _intervalType.asStateFlow()
+
     fun onDateChange(date: String) {
         _date.value = date
     }
@@ -90,6 +96,14 @@ class AddServiceRecordViewModel @Inject constructor(
 
     fun onNextServiceDueMileageChange(mileage: String) {
         _nextServiceDueMileage.value = mileage
+    }
+
+    fun onIntervalChange(interval: Int?) {
+        _interval.value = interval
+    }
+
+    fun onIntervalTypeChange(intervalType: ServiceIntervalType) {
+        _intervalType.value = intervalType
     }
 
     fun saveServiceRecord() {

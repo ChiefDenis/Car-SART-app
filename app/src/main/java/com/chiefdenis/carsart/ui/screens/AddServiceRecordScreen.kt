@@ -47,6 +47,7 @@ import androidx.compose.material.icons.filled.Note
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
@@ -59,6 +60,7 @@ import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -96,10 +98,15 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.chiefdenis.carsart.data.database.ServiceType
 import com.chiefdenis.carsart.ui.theme.CarSartMotion
+import com.chiefdenis.carsart.ui.utils.ServiceTypeUtils
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.UUID
+
+enum class ServiceIntervalType {
+    DAYS, WEEKS, MONTHS, YEARS
+}
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -113,6 +120,8 @@ fun AddServiceRecordScreen(viewModel: AddServiceRecordViewModel = hiltViewModel(
     val receiptPhotos by viewModel.receiptPhotos.collectAsState()
     val nextServiceDueDate by viewModel.nextServiceDueDate.collectAsState()
     val nextServiceDueMileage by viewModel.nextServiceDueMileage.collectAsState()
+    val interval by viewModel.interval.collectAsState()
+    val intervalType by viewModel.intervalType.collectAsState()
     
     val scrollState = rememberLazyListState()
     var isContentVisible by remember { mutableStateOf(false) }
@@ -185,7 +194,7 @@ fun AddServiceRecordScreen(viewModel: AddServiceRecordViewModel = hiltViewModel(
                     bottom = 100.dp
                 )
             ) {
-                // Date Section
+                // Service Date Section
                 item {
                     ServiceSectionCard(
                         title = "Service Date",
@@ -216,11 +225,50 @@ fun AddServiceRecordScreen(viewModel: AddServiceRecordViewModel = hiltViewModel(
                     }
                 }
 
+                // Service Interval Section
+                item {
+                    ServiceSectionCard(
+                        title = "Service Interval",
+                        icon = Icons.Default.Schedule,
+                        description = "How often should this service be performed?"
+                    ) {
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            OutlinedTextField(
+                                value = interval?.toString() ?: "",
+                                onValueChange = { viewModel.onIntervalChange(it.toIntOrNull()) },
+                                label = { Text("Interval") },
+                                placeholder = { Text("Enter interval") },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                                ),
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Schedule,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            )
+                            
+                            ServiceIntervalTypeSelector(
+                                selectedType = intervalType,
+                                onTypeSelected = { viewModel.onIntervalTypeChange(it) }
+                            )
+                        }
+                    }
+                }
+
                 // Service Type Section
                 item {
                     ServiceSectionCard(
                         title = "Service Type",
-                        icon = getServiceTypeIcon(serviceType),
+                        icon = ServiceTypeUtils.getIcon(serviceType),
                         description = "What type of service was performed?"
                     ) {
                         ServiceTypeSelector(
@@ -430,20 +478,16 @@ fun AddServiceRecordScreen(viewModel: AddServiceRecordViewModel = hiltViewModel(
 
         // Floating Action Buttons
         Box(
-            modifier = Modifier.fillMaxWidth(),
-            contentAlignment = Alignment.BottomCenter
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.BottomEnd
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 PhotoFab(
                     onClick = { showPhotoPicker = true }
                 )
-                
-                Spacer(modifier = Modifier.weight(1f))
                 
                 SaveFab(
                     onClick = {
@@ -592,10 +636,10 @@ fun ServiceTypeSelector(
         ServiceType.values().forEach { type ->
             AssistChip(
                 onClick = { onTypeSelected(type) },
-                label = { Text(getServiceTypeDisplayName(type)) },
+                label = { Text(ServiceTypeUtils.getDisplayName(type)) },
                 leadingIcon = {
                     Icon(
-                        imageVector = getServiceTypeIcon(type),
+                        imageVector = ServiceTypeUtils.getIcon(type),
                         contentDescription = null,
                         modifier = Modifier.size(16.dp)
                     )
@@ -612,6 +656,39 @@ fun ServiceTypeSelector(
                         MaterialTheme.colorScheme.onSurfaceVariant
                     },
                     leadingIconContentColor = if (selectedType == type) {
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    }
+                ),
+                modifier = Modifier.wrapContentHeight()
+            )
+        }
+    }
+}
+
+@Composable
+@OptIn(ExperimentalLayoutApi::class)
+fun ServiceIntervalTypeSelector(
+    selectedType: ServiceIntervalType,
+    onTypeSelected: (ServiceIntervalType) -> Unit
+) {
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        ServiceIntervalType.values().forEach { type ->
+            AssistChip(
+                onClick = { onTypeSelected(type) },
+                label = { Text(getServiceIntervalTypeDisplayName(type)) },
+                colors = androidx.compose.material3.AssistChipDefaults.assistChipColors(
+                    containerColor = if (selectedType == type) {
+                        MaterialTheme.colorScheme.primaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    },
+                    labelColor = if (selectedType == type) {
                         MaterialTheme.colorScheme.onPrimaryContainer
                     } else {
                         MaterialTheme.colorScheme.onSurfaceVariant
@@ -774,78 +851,47 @@ fun SaveButton(
 
 @Composable
 fun PhotoFab(onClick: () -> Unit) {
-    ExtendedFloatingActionButton(
+    FloatingActionButton(
         onClick = onClick,
-        containerColor = MaterialTheme.colorScheme.secondary,
-        contentColor = MaterialTheme.colorScheme.onSecondary,
+        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
         elevation = FloatingActionButtonDefaults.elevation(
             defaultElevation = 6.dp,
             pressedElevation = 8.dp
-        ),
-        modifier = Modifier.shadow(
-            elevation = 8.dp,
-            shape = RoundedCornerShape(16.dp)
         )
     ) {
         Icon(
             imageVector = Icons.Default.CameraAlt,
-            contentDescription = "Add photo"
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = "Add Photo",
-            style = MaterialTheme.typography.labelLarge.copy(
-                fontWeight = FontWeight.Medium
-            )
+            contentDescription = "Add photo",
+            modifier = Modifier.size(24.dp)
         )
     }
 }
 
 @Composable
 fun SaveFab(onClick: () -> Unit) {
-    ExtendedFloatingActionButton(
+    FloatingActionButton(
         onClick = onClick,
         containerColor = MaterialTheme.colorScheme.primary,
         contentColor = MaterialTheme.colorScheme.onPrimary,
         elevation = FloatingActionButtonDefaults.elevation(
-            defaultElevation = 8.dp,
-            pressedElevation = 12.dp
-        ),
-        modifier = Modifier.shadow(
-            elevation = 12.dp,
-            shape = RoundedCornerShape(16.dp)
+            defaultElevation = 6.dp,
+            pressedElevation = 8.dp
         )
     ) {
         Icon(
             imageVector = Icons.Default.Save,
-            contentDescription = "Save service record"
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = "Save",
-            style = MaterialTheme.typography.labelLarge.copy(
-                fontWeight = FontWeight.Medium
-            )
+            contentDescription = "Save service record",
+            modifier = Modifier.size(24.dp)
         )
     }
 }
 
-fun getServiceTypeIcon(serviceType: ServiceType): ImageVector {
-    return when (serviceType) {
-        ServiceType.MAINTENANCE -> Icons.Default.Edit
-        ServiceType.REPAIR -> Icons.Default.Build
-        ServiceType.INSPECTION -> Icons.Default.Search
-        ServiceType.UPGRADE -> Icons.Default.Add
-        ServiceType.OTHER -> Icons.Default.MoreHoriz
-    }
-}
-
-fun getServiceTypeDisplayName(serviceType: ServiceType): String {
-    return when (serviceType) {
-        ServiceType.MAINTENANCE -> "Maintenance"
-        ServiceType.REPAIR -> "Repair"
-        ServiceType.INSPECTION -> "Inspection"
-        ServiceType.UPGRADE -> "Upgrade"
-        ServiceType.OTHER -> "Other"
+fun getServiceIntervalTypeDisplayName(intervalType: ServiceIntervalType): String {
+    return when (intervalType) {
+        ServiceIntervalType.DAYS -> "Days"
+        ServiceIntervalType.WEEKS -> "Weeks"
+        ServiceIntervalType.MONTHS -> "Months"
+        ServiceIntervalType.YEARS -> "Years"
     }
 }

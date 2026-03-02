@@ -11,6 +11,7 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -87,6 +88,7 @@ import com.chiefdenis.carsart.ui.util.getVehicleTypeDisplayName
 fun VehicleDetailScreen(
     viewModel: VehicleDetailViewModel = hiltViewModel(),
     onAddServiceRecord: (UUID) -> Unit,
+    onViewServiceRecord: (String) -> Unit = {},
     onBack: () -> Unit = {}
 ) {
     val vehicle by viewModel.vehicle.collectAsState()
@@ -207,7 +209,12 @@ fun VehicleDetailScreen(
             ) {
                 LazyColumn(
                     state = listState,
-                    contentPadding = paddingValues,
+                    contentPadding = PaddingValues(
+                        start = 16.dp,
+                        end = 16.dp,
+                        top = 16.dp,
+                        bottom = 100.dp
+                    ),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                     modifier = Modifier.fillMaxSize()
                 ) {
@@ -233,7 +240,8 @@ fun VehicleDetailScreen(
                         ) { record ->
                             ServiceRecordListItem(
                                 record = record,
-                                index = serviceHistory.indexOf(record)
+                                index = serviceHistory.indexOf(record),
+                                onClick = { onViewServiceRecord(record.id.toString()) }
                             )
                         }
                     } else {
@@ -442,7 +450,7 @@ fun ServiceHistoryHeader(serviceCount: Int) {
 }
 
 @Composable
-fun ServiceRecordListItem(record: com.chiefdenis.carsart.domain.model.ServiceRecord, index: Int = 0) {
+fun ServiceRecordListItem(record: com.chiefdenis.carsart.domain.model.ServiceRecord, index: Int = 0, onClick: () -> Unit = {}) {
     val dateFormat = remember { SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()) }
     
     AnimatedVisibility(
@@ -463,7 +471,9 @@ fun ServiceRecordListItem(record: com.chiefdenis.carsart.domain.model.ServiceRec
         )
     ) {
         Card(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onClick() },
             shape = RoundedCornerShape(12.dp),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surface,

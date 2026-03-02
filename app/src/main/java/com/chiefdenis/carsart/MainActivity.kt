@@ -70,6 +70,7 @@ import androidx.navigation.navArgument
 import com.chiefdenis.carsart.data.repository.ThemeMode
 import com.chiefdenis.carsart.ui.screens.AddServiceRecordScreen
 import com.chiefdenis.carsart.ui.screens.AddVehicleScreen
+import com.chiefdenis.carsart.ui.screens.ServiceRecordScreen
 import com.chiefdenis.carsart.ui.screens.SettingsScreen
 import com.chiefdenis.carsart.ui.screens.SettingsViewModel
 import com.chiefdenis.carsart.ui.screens.VehicleDetailScreen
@@ -86,6 +87,9 @@ sealed class Screen(val route: String, val label: String? = null, val icon: Imag
     }
     object AddServiceRecord : Screen("add_service_record/{vehicleId}") {
         fun createRoute(vehicleId: String) = "add_service_record/$vehicleId"
+    }
+    object ServiceRecords : Screen("service_record/{serviceRecordId}") {
+        fun createRoute(serviceRecordId: String) = "service_record/$serviceRecordId"
     }
 }
 
@@ -271,7 +275,12 @@ class MainActivity : ComponentActivity() {
                             popExitTransition = { slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(500)) }
                         ) { 
                             VehicleDetailScreen(
-                                onAddServiceRecord = { vehicleId -> navController.navigate(Screen.AddServiceRecord.createRoute(vehicleId.toString())) }
+                                onAddServiceRecord = { vehicleId -> 
+                                    navController.navigate(Screen.AddServiceRecord.createRoute(vehicleId.toString()))
+                                },
+                                onViewServiceRecord = { serviceRecordId ->
+                                    navController.navigate(Screen.ServiceRecords.createRoute(serviceRecordId))
+                                }
                             )
                         }
                         composable(
@@ -283,6 +292,21 @@ class MainActivity : ComponentActivity() {
                             popExitTransition = { slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(500)) }
                         ) {
                             AddServiceRecordScreen(onServiceRecordAdded = { navController.popBackStack() })
+                        }
+                        composable(
+                            route = Screen.ServiceRecords.route,
+                            arguments = listOf(navArgument("serviceRecordId") { type = NavType.StringType }),
+                            enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }, animationSpec = tween(500)) },
+                            exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }, animationSpec = tween(500)) },
+                            popEnterTransition = { slideInHorizontally(initialOffsetX = { -1000 }, animationSpec = tween(500)) },
+                            popExitTransition = { slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(500)) }
+                        ) {
+                            ServiceRecordScreen(
+                                onBack = { navController.popBackStack() },
+                                onEdit = { serviceRecordId -> 
+                                    navController.navigate(Screen.AddServiceRecord.createRoute(serviceRecordId))
+                                }
+                            )
                         }
                     }
                 }
