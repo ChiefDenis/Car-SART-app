@@ -265,7 +265,7 @@ class MainActivity : ComponentActivity() {
                             exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }, animationSpec = tween(500)) },
                             popEnterTransition = { slideInHorizontally(initialOffsetX = { -1000 }, animationSpec = tween(500)) },
                             popExitTransition = { slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(500)) }
-                        ) { AddVehicleScreen(onVehicleAdded = { navController.popBackStack() }) }
+                        ) { AddVehicleScreen(onVehicleAdded = { navController.popBackStack() }, onBack = { navController.popBackStack() }) }
                         composable(
                             route = Screen.VehicleDetail.route,
                             arguments = listOf(navArgument("vehicleId") { type = NavType.StringType }),
@@ -280,7 +280,8 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onViewServiceRecord = { serviceRecordId ->
                                     navController.navigate(Screen.ServiceRecords.createRoute(serviceRecordId))
-                                }
+                                },
+                                onBack = { navController.popBackStack() }
                             )
                         }
                         composable(

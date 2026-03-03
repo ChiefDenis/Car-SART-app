@@ -158,31 +158,10 @@ fun AddServiceRecordScreen(viewModel: AddServiceRecordViewModel = hiltViewModel(
         )
     ) {
         Surface(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxSize(), // Changed to fillMaxSize
             color = MaterialTheme.colorScheme.background
         ) {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        text = "Add Service Record",
-                        style = MaterialTheme.typography.titleLarge.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = { /* TODO: Handle back */ }) {
-                        Icon(
-                            imageVector = Icons.Default.Clear,
-                            contentDescription = "Back",
-                            tint = MaterialTheme.colorScheme.onBackground
-                        )
-                    }
-                },
-                scrollBehavior = scrollBehavior
-            )
-            
+            // 1. Place Scrolling Content FIRST so it is at bottom of stack
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -190,7 +169,7 @@ fun AddServiceRecordScreen(viewModel: AddServiceRecordViewModel = hiltViewModel(
                 state = scrollState,
                 verticalArrangement = Arrangement.spacedBy(20.dp),
                 contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                    top = 80.dp,
+                    top = 100.dp, // Enough space for TopAppBar
                     bottom = 100.dp
                 )
             ) {
@@ -471,6 +450,51 @@ fun AddServiceRecordScreen(viewModel: AddServiceRecordViewModel = hiltViewModel(
                             onServiceRecordAdded()
                         },
                         text = "Save Service Record"
+                    )
+                }
+            }
+            
+            // 2. Place Header Overlay SECOND so it sits on top of list
+            Box(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                CenterAlignedTopAppBar(
+                    title = {
+                        Text(
+                            text = "Add Service Record",
+                            style = MaterialTheme.typography.titleLarge.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                        )
+                    },
+                    navigationIcon = {},
+                    scrollBehavior = scrollBehavior,
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                        containerColor = Color.Transparent // Allow background to show through
+                    )
+                )
+
+                // 3. Place Button LAST inside this Box so it's on top of TopAppBar
+                IconButton(
+                    onClick = onServiceRecordAdded,
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(16.dp)
+                        .shadow(
+                            elevation = 12.dp,
+                            shape = RoundedCornerShape(50)
+                        )
+                        .background(
+                            color = MaterialTheme.colorScheme.surface,
+                            shape = RoundedCornerShape(50)
+                        )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Clear,
+                        contentDescription = "Close",
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.size(24.dp)
                     )
                 }
             }

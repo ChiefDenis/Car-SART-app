@@ -1,0 +1,277 @@
+package com.chiefdenis.carsart.ui.screens
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewModelScope
+import com.chiefdenis.carsart.domain.usecase.GetMaintenanceTasks
+import com.chiefdenis.carsart.domain.usecase.MarkMaintenanceTaskDone
+import com.chiefdenis.carsart.data.database.MaintenanceTask
+import com.chiefdenis.carsart.data.database.MaintenancePriority
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
+import java.util.UUID
+import javax.inject.Inject
+
+data class MaintenanceTasksUiState(
+    val tasks: List<MaintenanceTask> = emptyList(),
+    val isLoading: Boolean = false,
+    val error: String? = null
+)
+
+@HiltViewModel
+class MaintenanceTasksViewModel @Inject constructor(
+    private val getMaintenanceTasks: GetMaintenanceTasks,
+    private val markMaintenanceTaskDone: MarkMaintenanceTaskDone
+) : androidx.lifecycle.ViewModel() {
+    
+    private val _vehicleId = MutableStateFlow<UUID?>(null)
+    private val _uiState = MutableStateFlow(MaintenanceTasksUiState())
+    val uiState: StateFlow<MaintenanceTasksUiState> = _uiState
+    
+    init {
+        viewModelScope.launch {
+            _vehicleId.flatMapLatest { vehicleId ->
+                if (vehicleId != null) {
+                    getMaintenanceTasks(vehicleId)
+                } else {
+                    flowOf(emptyList())
+                }
+            }.collect { tasks ->
+                _uiState.value = _uiState.value.copy(tasks = tasks, isLoading = false)
+            }
+        }
+    }
+    
+    fun setVehicleId(vehicleId: UUID) {
+        _vehicleId.value = vehicleId
+        _uiState.value = _uiState.value.copy(isLoading = true)
+    }
+    
+    fun markTaskDone(taskId: UUID, currentMileage: Int) {
+        viewModelScope.launch {
+            try {
+                markMaintenanceTaskDone(taskId, currentMileage)
+                // Refresh tasks
+                _vehicleId.value?.let { vehicleId ->
+                    val tasks = getMaintenanceTasks(vehicleId)
+                    _uiState.value = _uiState.value.copy(tasks = tasks)
+                }
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(error = e.message)
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MaintenanceTasksScreen(
+    vehicleId: UUID,
+    onBack: () -> Unit,
+    onAddTask: () -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: MaintenanceTasksViewModel = hiltViewModel()
+) {
+    LaunchedEffect(vehicleId) {
+        viewModel.setVehicleId(vehicleId)
+    }
+    
+    val uiState by viewModel.uiState.collectAsState()
+    
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Maintenance Tasks") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onAddTask) {
+                        Icon(Icons.Default.Add, contentDescription = "Add Task")
+                    }
+                }
+            )
+        },
+        floatingActionButton = {
+            FloatingActionButton(onClick = onAddTask) {
+                Icon(Icons.Default.Add, contentDescription = "Add Maintenance Task")
+            }
+        },
+        modifier = modifier
+    ) { paddingValues ->
+        when {
+            uiState.isLoading -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+            
+            uiState.error != null -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("Error: ${uiState.error}")
+                }
+            }
+            
+            uiState.tasks.isEmpty() -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Build,
+                            contentDescription = null,
+                            modifier = Modifier.size(64.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = "No Maintenance Tasks",
+                            style = MaterialTheme.typography.headlineSmall
+                        )
+                        Text(
+                            text = "Add your first maintenance task to get started",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Button(onClick = onAddTask) {
+                            Text("Add Task")
+                        }
+                    }
+                }
+            }
+            
+            else -> {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(uiState.tasks) { task ->
+                        MaintenanceTaskCard(
+                            task = task,
+                            onMarkDone = { viewModel.markTaskDone(task.id, 0) } // TODO: Get actual mileage
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun MaintenanceTaskCard(
+    task: MaintenanceTask,
+    onMarkDone: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val priorityColor = when (task.priority) {
+        MaintenancePriority.CRITICAL -> MaterialTheme.colorScheme.error
+        MaintenancePriority.HIGH -> MaterialTheme.colorScheme.errorContainer
+        MaintenancePriority.MEDIUM -> MaterialTheme.colorScheme.primary
+        MaintenancePriority.LOW -> MaterialTheme.colorScheme.primaryContainer
+    }
+    
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = task.taskName,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    
+                    if (task.description.isNotBlank()) {
+                        Text(
+                            text = task.description,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+                
+                Surface(
+                    color = priorityColor,
+                    shape = MaterialTheme.shapes.small
+                ) {
+                    Text(
+                        text = task.priority.name,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+            }
+            
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    if (task.intervalMonths > 0) {
+                        Text(
+                            text = "Every ${task.intervalMonths} months",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                    if (task.intervalMileageKm != null) {
+                        Text(
+                            text = "Every ${task.intervalMileageKm} km",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+                
+                Button(
+                    onClick = onMarkDone,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Done")
+                }
+            }
+        }
+    }
+}

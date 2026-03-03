@@ -3,25 +3,25 @@ package com.chiefdenis.carsart.ui.theme
 import androidx.compose.ui.graphics.Color
 
 // Custom Color Scheme using #30bcb2 and #e04749
-// Primary colors - Custom teal (#30bcb2)
-val PrimaryLight = Color(0xFF30BCB2)
+// Primary colors - Custom teal (#30bcb2) - darker shade for light mode
+val PrimaryLight = Color(0xFF28A5A0)  // Darker shade of #30bcb2
 val OnPrimaryLight = Color(0xFFFFFFFF)
 val PrimaryContainerLight = Color(0xFFB3EAE6)
 val OnPrimaryContainerLight = Color(0xFF002D2A)
 
-// Secondary colors - Complementary gray
-val SecondaryLight = Color(0xFF4F6367)
+// Secondary colors - Using the red accent (#e04749)
+val SecondaryLight = Color(0xFFE04749)
 val OnSecondaryLight = Color(0xFFFFFFFF)
-val SecondaryContainerLight = Color(0xFFD2E5E9)
-val OnSecondaryContainerLight = Color(0xFF0B1F23)
+val SecondaryContainerLight = Color(0xFFFFDAD6)
+val OnSecondaryContainerLight = Color(0xFF410002)
 
-// Tertiary colors - Warm accent
-val TertiaryLight = Color(0xFF7D5260)
+// Tertiary colors - Mix of both colors
+val TertiaryLight = Color(0xFF30BCB2)
 val OnTertiaryLight = Color(0xFFFFFFFF)
-val TertiaryContainerLight = Color(0xFFFFD9E2)
-val OnTertiaryContainerLight = Color(0xFF31101D)
+val TertiaryContainerLight = Color(0xFFB3EAE6)
+val OnTertiaryContainerLight = Color(0xFF002D2A)
 
-// Error colors - Custom red (#e04749)
+// Error colors - Using the red accent (#e04749)
 val ErrorLight = Color(0xFFE04749)
 val OnErrorLight = Color(0xFFFFFFFF)
 val ErrorContainerLight = Color(0xFFFFDAD6)
@@ -36,20 +36,20 @@ val SurfaceVariantLight = Color(0xFFE1E2EC)
 val OnSurfaceVariantLight = Color(0xFF44474F)
 
 // Dark theme colors
-val PrimaryDark = Color(0xFF6ED7D0)
+val PrimaryDark = Color(0xFF30BCB2)
 val OnPrimaryDark = Color(0xFF003734)
 val PrimaryContainerDark = Color(0xFF00504C)
 val OnPrimaryContainerDark = Color(0xFFB3EAE6)
 
-val SecondaryDark = Color(0xFFB6CAD0)
-val OnSecondaryDark = Color(0xFF21352A)
-val SecondaryContainerDark = Color(0xFF374B50)
-val OnSecondaryContainerDark = Color(0xFFD2E5E9)
+val SecondaryDark = Color(0xFFE04749)
+val OnSecondaryDark = Color(0xFF690005)
+val SecondaryContainerDark = Color(0xFF93000A)
+val OnSecondaryContainerDark = Color(0xFFFFDAD6)
 
-val TertiaryDark = Color(0xFFECB8C8)
-val OnTertiaryDark = Color(0xFF4B2532)
-val TertiaryContainerDark = Color(0xFF633B47)
-val OnTertiaryContainerDark = Color(0xFFFFD9E2)
+val TertiaryDark = Color(0xFF6ED7D0)
+val OnTertiaryDark = Color(0xFF003734)
+val TertiaryContainerDark = Color(0xFF00504C)
+val OnTertiaryContainerDark = Color(0xFFB3EAE6)
 
 val ErrorDark = Color(0xFFFFB4AB)
 val OnErrorDark = Color(0xFF690005)

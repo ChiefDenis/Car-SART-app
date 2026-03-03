@@ -1,0 +1,270 @@
+package com.chiefdenis.carsart.ui.screens
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewModelScope
+import com.chiefdenis.carsart.data.database.MaintenancePriority
+import com.chiefdenis.carsart.data.database.VehicleType
+import com.chiefdenis.carsart.domain.SuggestionEngine
+import com.chiefdenis.carsart.domain.usecase.AddMaintenanceTask
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import java.util.UUID
+import javax.inject.Inject
+
+data class AddMaintenanceTaskUiState(
+    val taskName: String = "",
+    val description: String = "",
+    val intervalMonths: String = "",
+    val intervalMileage: String = "",
+    val priority: MaintenancePriority = MaintenancePriority.MEDIUM,
+    val isSaving: Boolean = false,
+    val error: String? = null,
+    val isSaved: Boolean = false
+)
+
+@HiltViewModel
+class AddMaintenanceTaskViewModel @Inject constructor(
+    private val addMaintenanceTask: AddMaintenanceTask,
+    private val suggestionEngine: SuggestionEngine
+) : androidx.lifecycle.ViewModel() {
+    
+    private val _uiState = MutableStateFlow(AddMaintenanceTaskUiState())
+    val uiState = _uiState.asStateFlow()
+    
+    fun updateTaskName(name: String) {
+        _uiState.value = _uiState.value.copy(taskName = name)
+    }
+    
+    fun updateDescription(description: String) {
+        _uiState.value = _uiState.value.copy(description = description)
+    }
+    
+    fun updateIntervalMonths(months: String) {
+        _uiState.value = _uiState.value.copy(intervalMonths = months)
+    }
+    
+    fun updateIntervalMileage(mileage: String) {
+        _uiState.value = _uiState.value.copy(intervalMileage = mileage)
+    }
+    
+    fun updatePriority(priority: MaintenancePriority) {
+        _uiState.value = _uiState.value.copy(priority = priority)
+    }
+    
+    fun saveTask(vehicleId: UUID) {
+        val currentState = _uiState.value
+        
+        if (currentState.taskName.isBlank()) {
+            _uiState.value = currentState.copy(error = "Task name is required")
+            return
+        }
+        
+        val intervalMonths = currentState.intervalMonths.toIntOrNull()
+        val intervalMileage = currentState.intervalMileage.toIntOrNull()
+        
+        if (intervalMonths == null && intervalMileage == null) {
+            _uiState.value = currentState.copy(error = "At least one interval (months or mileage) is required")
+            return
+        }
+        
+        viewModelScope.launch {
+            try {
+                _uiState.value = currentState.copy(isSaving = true, error = null)
+                
+                val task = com.chiefdenis.carsart.data.database.MaintenanceTask(
+                    vehicleId = vehicleId,
+                    taskName = currentState.taskName,
+                    description = currentState.description,
+                    intervalMonths = intervalMonths ?: 0,
+                    intervalMileageKm = intervalMileage,
+                    priority = currentState.priority,
+                    isCustom = true
+                )
+                
+                addMaintenanceTask(task)
+                _uiState.value = currentState.copy(isSaving = false, isSaved = true)
+            } catch (e: Exception) {
+                _uiState.value = currentState.copy(isSaving = false, error = e.message)
+            }
+        }
+    }
+    
+    fun clearError() {
+        _uiState.value = _uiState.value.copy(error = null)
+    }
+    
+    fun loadTemplate(vehicleType: VehicleType) {
+        val templates = suggestionEngine.getPredefinedMaintenanceTemplates(vehicleType)
+        if (templates.isNotEmpty()) {
+            val template = templates.first()
+            _uiState.value = _uiState.value.copy(
+                taskName = template.taskName,
+                description = template.description,
+                intervalMonths = template.intervalMonths.toString(),
+                intervalMileage = template.intervalMileageKm?.toString() ?: "",
+                priority = template.priority
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AddMaintenanceTaskScreen(
+    vehicleId: UUID,
+    vehicleType: VehicleType,
+    onBack: () -> Unit,
+    onTaskSaved: () -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: AddMaintenanceTaskViewModel = hiltViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsState()
+    val scrollState = rememberScrollState()
+    
+    LaunchedEffect(uiState.isSaved) {
+        if (uiState.isSaved) {
+            onTaskSaved()
+        }
+    }
+    
+    LaunchedEffect(uiState.error) {
+        if (uiState.error != null) {
+            // Show snackbar or handle error
+        }
+    }
+    
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Add Maintenance Task") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { viewModel.loadTemplate(vehicleType) }) {
+                        Icon(Icons.Default.AutoAwesome, contentDescription = "Load Template")
+                    }
+                }
+            )
+        },
+        modifier = modifier
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp)
+                .verticalScroll(scrollState),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // Task Name
+            OutlinedTextField(
+                value = uiState.taskName,
+                onValueChange = viewModel::updateTaskName,
+                label = { Text("Task Name *") },
+                modifier = Modifier.fillMaxWidth(),
+                isError = uiState.taskName.isBlank() && uiState.error != null
+            )
+            
+            // Description
+            OutlinedTextField(
+                value = uiState.description,
+                onValueChange = viewModel::updateDescription,
+                label = { Text("Description") },
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 3,
+                maxLines = 5
+            )
+            
+            // Interval Months
+            OutlinedTextField(
+                value = uiState.intervalMonths,
+                onValueChange = viewModel::updateIntervalMonths,
+                label = { Text("Interval (Months)") },
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                isError = uiState.intervalMonths.isBlank() && uiState.intervalMileage.isBlank() && uiState.error != null
+            )
+            
+            // Interval Mileage
+            OutlinedTextField(
+                value = uiState.intervalMileage,
+                onValueChange = viewModel::updateIntervalMileage,
+                label = { Text("Interval (Kilometers)") },
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                isError = uiState.intervalMileage.isBlank() && uiState.intervalMonths.isBlank() && uiState.error != null
+            )
+            
+            // Priority
+            Text(
+                text = "Priority",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+            
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                MaintenancePriority.values().forEach { priority ->
+                    FilterChip(
+                        selected = uiState.priority == priority,
+                        onClick = { viewModel.updatePriority(priority) },
+                        label = { Text(priority.name) }
+                    )
+                }
+            }
+            
+            // Error Message
+            uiState.error?.let { error ->
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer
+                    )
+                ) {
+                    Text(
+                        text = error,
+                        modifier = Modifier.padding(16.dp),
+                        color = MaterialTheme.colorScheme.onErrorContainer
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.weight(1f))
+            
+            // Save Button
+            Button(
+                onClick = { viewModel.saveTask(vehicleId) },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !uiState.isSaving && uiState.taskName.isNotBlank() && 
+                        (uiState.intervalMonths.isNotBlank() || uiState.intervalMileage.isNotBlank())
+            ) {
+                if (uiState.isSaving) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                } else {
+                    Text("Save Task")
+                }
+            }
+        }
+    }
+}

@@ -112,8 +112,8 @@ object CarSartMotion {
 @Composable
 fun CarSARTTheme(
     themeMode: ThemeMode = ThemeMode.SYSTEM,
-    // Dynamic color is available on Android S+ and is part of Material 3.
-    dynamicColor: Boolean = true,
+    // Dynamic color disabled to use custom theme colors
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val systemDarkTheme = isSystemInDarkTheme()

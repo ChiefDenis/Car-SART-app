@@ -1,0 +1,14 @@
+package com.chiefdenis.carsart.domain.usecase
+
+import com.chiefdenis.carsart.data.repository.MaintenanceRepository
+import com.chiefdenis.carsart.data.database.MaintenanceTask
+import java.util.UUID
+import javax.inject.Inject
+
+class AddMaintenanceTask @Inject constructor(
+    private val maintenanceRepository: MaintenanceRepository
+) {
+    suspend operator fun invoke(task: MaintenanceTask): Long {
+        return maintenanceRepository.addMaintenanceTask(task)
+    }
+}

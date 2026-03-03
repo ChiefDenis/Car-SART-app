@@ -82,6 +82,9 @@ import java.util.Locale
 import java.util.UUID
 import kotlinx.coroutines.delay
 import com.chiefdenis.carsart.ui.util.getVehicleTypeDisplayName
+import com.chiefdenis.carsart.data.repository.UserPreferences
+import com.chiefdenis.carsart.utils.CurrencyFormatter
+import java.math.BigDecimal
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -93,6 +96,8 @@ fun VehicleDetailScreen(
 ) {
     val vehicle by viewModel.vehicle.collectAsState()
     val serviceHistory by viewModel.serviceHistory.collectAsState()
+    // For now, use default preferences - this can be enhanced later
+    val userPreferences = UserPreferences()
     val listState = rememberLazyListState()
     var isContentVisible by remember { mutableStateOf(false) }
 
@@ -212,7 +217,7 @@ fun VehicleDetailScreen(
                     contentPadding = PaddingValues(
                         start = 16.dp,
                         end = 16.dp,
-                        top = 16.dp,
+                        top = 80.dp,
                         bottom = 100.dp
                     ),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -241,7 +246,8 @@ fun VehicleDetailScreen(
                             ServiceRecordListItem(
                                 record = record,
                                 index = serviceHistory.indexOf(record),
-                                onClick = { onViewServiceRecord(record.id.toString()) }
+                                onClick = { onViewServiceRecord(record.id.toString()) },
+                                userPreferences = userPreferences
                             )
                         }
                     } else {
@@ -450,7 +456,7 @@ fun ServiceHistoryHeader(serviceCount: Int) {
 }
 
 @Composable
-fun ServiceRecordListItem(record: com.chiefdenis.carsart.domain.model.ServiceRecord, index: Int = 0, onClick: () -> Unit = {}) {
+fun ServiceRecordListItem(record: com.chiefdenis.carsart.domain.model.ServiceRecord, index: Int = 0, onClick: () -> Unit = {}, userPreferences: UserPreferences = UserPreferences()) {
     val dateFormat = remember { SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()) }
     
     AnimatedVisibility(
@@ -515,7 +521,10 @@ fun ServiceRecordListItem(record: com.chiefdenis.carsart.domain.model.ServiceRec
                         color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f)
                     ) {
                         Text(
-                            text = "₦${record.cost}",
+                            text = CurrencyFormatter.formatCurrency(
+                                BigDecimal(record.cost.toDouble()),
+                                userPreferences.currency
+                            ),
                             style = MaterialTheme.typography.bodyMedium.copy(
                                 fontWeight = FontWeight.Medium,
                                 color = MaterialTheme.colorScheme.tertiary
