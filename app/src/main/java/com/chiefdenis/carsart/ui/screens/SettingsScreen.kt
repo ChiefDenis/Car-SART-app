@@ -368,22 +368,76 @@ fun AboutDialog(onDismiss: () -> Unit) {
                         )
                     )
                     Text(
-                        text = "Version 0.22.0",
+                        text = "Version 0.27.3",
                         style = MaterialTheme.typography.bodyLarge.copy(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     )
+                    
+                    Spacer(modifier = Modifier.height(4.dp))
+                    
+                    Text(
+                        text = "Build 20260303",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        )
+                    )
                 }
                 
-                // Description
+                // Enhanced Description
                 Text(
-                    text = "A comprehensive vehicle maintenance tracking application that helps you manage your car's service history, maintenance schedules, and costs.",
+                    text = "A comprehensive vehicle maintenance tracking application that helps you manage your car's service history, maintenance schedules, and costs with intelligent reminders and detailed analytics.",
                     style = MaterialTheme.typography.bodyMedium.copy(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                // Features Section
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "Key Features",
+                        style = MaterialTheme.typography.titleSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    )
+                    
+                    Text(
+                        text = "• Service History Tracking\n• Maintenance Reminders\n• Cost Analytics\n• Multiple Vehicle Support\n• Data Backup & Restore\n• Customizable Settings",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        )
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                // Developer Info
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = "© 2026 Chief Denis",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        )
+                    )
+                    Text(
+                        text = "Built with ❤️ using Jetpack Compose",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        )
+                    )
+                }
                 
                 // Close Button
                 Button(
