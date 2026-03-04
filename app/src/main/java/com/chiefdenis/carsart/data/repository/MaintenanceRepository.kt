@@ -14,6 +14,8 @@ interface MaintenanceRepository {
     fun getActiveTasks(): Flow<List<MaintenanceTask>>
     suspend fun deleteTask(id: UUID): Int
     suspend fun markTaskAsDone(taskId: UUID, currentMileage: Int): Boolean
+    fun getAllMaintenanceTasks(): Flow<List<MaintenanceTask>>
+    suspend fun deleteMaintenanceTaskById(id: UUID): Int
 }
 
 @Singleton
@@ -53,5 +55,13 @@ class MaintenanceRepositoryImpl @Inject constructor(
             return true
         }
         return false
+    }
+
+    override fun getAllMaintenanceTasks(): Flow<List<MaintenanceTask>> {
+        return maintenanceTaskDao.getAllMaintenanceTasks()
+    }
+
+    override suspend fun deleteMaintenanceTaskById(id: UUID): Int {
+        return maintenanceTaskDao.deleteTask(id)
     }
 }

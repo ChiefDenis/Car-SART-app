@@ -20,7 +20,7 @@ interface ServiceRecordDao {
     fun getServiceRecordsForVehicle(vehicleId: UUID): Flow<List<ServiceRecord>>
 
     @Query("SELECT * FROM service_records")
-    fun getAll(): List<ServiceRecord>
+    fun getAllServiceRecords(): Flow<List<ServiceRecord>>
 
     @Query("SELECT * FROM service_records WHERE id = :id")
     suspend fun getServiceRecordById(id: UUID): ServiceRecord?

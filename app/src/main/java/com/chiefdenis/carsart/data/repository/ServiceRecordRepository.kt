@@ -13,6 +13,7 @@ interface ServiceRecordRepository {
     fun getServiceRecordsForVehicle(vehicleId: UUID): Flow<List<ServiceRecord>>
     suspend fun getServiceRecordById(id: UUID): ServiceRecord?
     suspend fun deleteServiceRecordById(id: UUID): Int
+    fun getAllServiceRecords(): Flow<List<ServiceRecord>>
 }
 
 @Singleton
@@ -38,5 +39,9 @@ class ServiceRecordRepositoryImpl @Inject constructor(
 
     override suspend fun deleteServiceRecordById(id: UUID): Int {
         return serviceRecordDao.deleteServiceRecordById(id)
+    }
+
+    override fun getAllServiceRecords(): Flow<List<ServiceRecord>> {
+        return serviceRecordDao.getAllServiceRecords()
     }
 }

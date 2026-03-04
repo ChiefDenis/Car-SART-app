@@ -1,5 +1,11 @@
 package com.chiefdenis.carsart.ui.screens
 
+import android.content.Intent
+import android.net.Uri
+import android.util.Log
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.EaseOutCubic
 import androidx.compose.animation.core.tween
@@ -67,12 +73,15 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -80,12 +89,15 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.chiefdenis.carsart.data.repository.AppCurrency
 import com.chiefdenis.carsart.data.repository.AppUnitSystem
 import com.chiefdenis.carsart.data.repository.ThemeMode
 import com.chiefdenis.carsart.data.repository.UserPreferences
+import com.chiefdenis.carsart.ui.screens.SettingsViewModel
 import com.chiefdenis.carsart.ui.theme.CarSartMotion
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -93,9 +105,42 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
     onBack: () -> Unit = {}
 ) {
+    val context = LocalContext.current
     val settings by viewModel.settings.collectAsState()
     val scrollState = rememberScrollState()
     var isContentVisible by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
+    
+    // File pickers for backup/restore
+    val createBackupLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("*/*")
+    ) { uri ->
+        uri?.let {
+            coroutineScope.launch {
+                val success = viewModel.backupToFile(context, it)
+                Toast.makeText(
+                    context, 
+                    if (success) "Backup saved successfully" else "Backup failed",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+    }
+    
+    val openRestoreLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let {
+            coroutineScope.launch {
+                val success = viewModel.restoreFromFile(context, it)
+                Toast.makeText(
+                    context, 
+                    if (success) "Restore completed successfully" else "Restore failed",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+    }
 
     LaunchedEffect(Unit) {
         delay(100)
@@ -196,8 +241,17 @@ fun SettingsScreen(
 
                 // Backup and Restore Settings
                 BackupAndRestoreCard(
-                    onBackup = { viewModel.backup() },
-                    onRestore = { viewModel.restore() }
+                    viewModel = viewModel,
+                    onBackup = { 
+                        // Launch file picker for backup location with timestamp
+                        val timestamp = java.text.SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.getDefault())
+                            .format(java.util.Date())
+                        createBackupLauncher.launch("carsart_backup_$timestamp.csart")
+                    },
+                    onRestore = { 
+                        // Launch file picker for restore file
+                        openRestoreLauncher.launch("*/*")
+                    }
                 )
                 
                 // About Section
@@ -519,6 +573,7 @@ fun MaintenanceSettingsCard(
 
 @Composable
 fun BackupAndRestoreCard(
+    viewModel: SettingsViewModel,
     onBackup: () -> Unit,
     onRestore: () -> Unit
 ) {
@@ -528,6 +583,7 @@ fun BackupAndRestoreCard(
         description = "Backup your data or restore from a previous backup"
     ) {
         BackupAndRestoreSettings(
+            viewModel = viewModel,
             onBackup = onBackup,
             onRestore = onRestore
         )
@@ -665,13 +721,20 @@ fun MaintenanceSettings(
 }
 
 @Composable
-fun BackupAndRestoreSettings(onBackup: () -> Unit, onRestore: () -> Unit) {
+fun BackupAndRestoreSettings(
+    viewModel: SettingsViewModel,
+    onBackup: () -> Unit,
+    onRestore: () -> Unit
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Button(
-            onClick = onBackup,
+            onClick = {
+                Log.d("SettingsScreen", "Backup button clicked!")
+                onBackup()
+            },
             modifier = Modifier
                 .weight(1f)
                 .height(48.dp),
@@ -685,22 +748,16 @@ fun BackupAndRestoreSettings(onBackup: () -> Unit, onRestore: () -> Unit) {
                 pressedElevation = 6.dp
             )
         ) {
-            Icon(
-                Icons.Default.Backup,
-                contentDescription = null,
-                modifier = Modifier.size(20.dp)
-            )
+            Icon(Icons.Default.Backup, contentDescription = null, modifier = Modifier.size(20.dp))
             Spacer(modifier = Modifier.padding(horizontal = 8.dp))
-            Text(
-                text = "Backup",
-                style = MaterialTheme.typography.labelMedium.copy(
-                    fontWeight = FontWeight.Medium
-                )
-            )
+            Text("Backup", style = MaterialTheme.typography.labelMedium)
         }
         
         Button(
-            onClick = onRestore,
+            onClick = {
+                Log.d("SettingsScreen", "Restore button clicked!")
+                onRestore()
+            },
             modifier = Modifier
                 .weight(1f)
                 .height(48.dp),
@@ -714,18 +771,9 @@ fun BackupAndRestoreSettings(onBackup: () -> Unit, onRestore: () -> Unit) {
                 pressedElevation = 6.dp
             )
         ) {
-            Icon(
-                Icons.Default.Restore,
-                contentDescription = null,
-                modifier = Modifier.size(20.dp)
-            )
+            Icon(Icons.Default.Restore, contentDescription = null, modifier = Modifier.size(20.dp))
             Spacer(modifier = Modifier.padding(horizontal = 8.dp))
-            Text(
-                text = "Restore",
-                style = MaterialTheme.typography.labelMedium.copy(
-                    fontWeight = FontWeight.Medium
-                )
-            )
+            Text("Restore", style = MaterialTheme.typography.labelMedium)
         }
     }
 }
@@ -737,7 +785,8 @@ fun CurrencyPicker(selectedCurrency: AppCurrency, onCurrencySelected: (AppCurren
 
     ExposedDropdownMenuBox(
         expanded = expanded,
-        onExpandedChange = { expanded = !expanded }
+        onExpandedChange = { expanded = !expanded },
+        modifier = Modifier.fillMaxWidth()
     ) {
         OutlinedTextField(
             readOnly = true,
@@ -746,6 +795,7 @@ fun CurrencyPicker(selectedCurrency: AppCurrency, onCurrencySelected: (AppCurren
             label = { Text("Currency") },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier
+                .menuAnchor()
                 .fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
