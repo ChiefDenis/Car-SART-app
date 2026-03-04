@@ -26,9 +26,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -123,7 +122,7 @@ fun AddServiceRecordScreen(viewModel: AddServiceRecordViewModel = hiltViewModel(
     val interval by viewModel.interval.collectAsState()
     val intervalType by viewModel.intervalType.collectAsState()
     
-    val scrollState = rememberLazyListState()
+    val scrollState = rememberScrollState()
     var isContentVisible by remember { mutableStateOf(false) }
     var showDatePicker by remember { mutableStateOf(false) }
     var showPhotoPicker by remember { mutableStateOf(false) }
@@ -158,300 +157,264 @@ fun AddServiceRecordScreen(viewModel: AddServiceRecordViewModel = hiltViewModel(
         )
     ) {
         Surface(
-            modifier = Modifier.fillMaxSize(), // Changed to fillMaxSize
+            modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ) {
             // 1. Place Scrolling Content FIRST so it is at bottom of stack
-            LazyColumn(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                state = scrollState,
-                verticalArrangement = Arrangement.spacedBy(20.dp),
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                    top = 100.dp, // Enough space for TopAppBar
-                    bottom = 100.dp
-                )
+                    .padding(horizontal = 16.dp)
+                    .verticalScroll(scrollState),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
+                Spacer(modifier = Modifier.height(100.dp)) // Space for TopAppBar
+                
                 // Service Date Section
-                item {
-                    ServiceSectionCard(
-                        title = "Service Date",
-                        icon = Icons.Default.CalendarMonth,
-                        description = "When was the service performed?"
+                ServiceSectionCard(
+                    title = "Service Date",
+                    icon = Icons.Default.CalendarMonth,
+                    description = "When was the service performed?"
+                ) {
+                    OutlinedTextField(
+                        value = date,
+                        onValueChange = viewModel::onDateChange,
+                        label = { Text("Date") },
+                        placeholder = { Text("Select date") },
+                        trailingIcon = {
+                            IconButton(onClick = { showDatePicker = true }) {
+                                Icon(
+                                    imageVector = Icons.Default.CalendarMonth,
+                                    contentDescription = "Pick date"
+                                )
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                        ),
+                        readOnly = true
+                    )
+                }
+
+                // Service Interval Section
+                ServiceSectionCard(
+                    title = "Service Interval",
+                    icon = Icons.Default.Schedule,
+                    description = "How often should this service be performed?"
+                ) {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         OutlinedTextField(
-                            value = date,
-                            onValueChange = viewModel::onDateChange,
-                            label = { Text("Date") },
-                            placeholder = { Text("Select date") },
-                            trailingIcon = {
-                                IconButton(onClick = { showDatePicker = true }) {
-                                    Icon(
-                                        imageVector = Icons.Default.CalendarMonth,
-                                        contentDescription = "Pick date"
-                                    )
-                                }
-                            },
+                            value = interval?.toString() ?: "",
+                            onValueChange = { viewModel.onIntervalChange(it.toIntOrNull()) },
+                            label = { Text("Interval") },
+                            placeholder = { Text("Enter interval") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = MaterialTheme.colorScheme.primary,
                                 unfocusedBorderColor = MaterialTheme.colorScheme.outline
                             ),
-                            readOnly = true
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Schedule,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         )
-                    }
-                }
-
-                // Service Interval Section
-                item {
-                    ServiceSectionCard(
-                        title = "Service Interval",
-                        icon = Icons.Default.Schedule,
-                        description = "How often should this service be performed?"
-                    ) {
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            OutlinedTextField(
-                                value = interval?.toString() ?: "",
-                                onValueChange = { viewModel.onIntervalChange(it.toIntOrNull()) },
-                                label = { Text("Interval") },
-                                placeholder = { Text("Enter interval") },
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(12.dp),
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
-                                ),
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Default.Schedule,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            )
-                            
-                            ServiceIntervalTypeSelector(
-                                selectedType = intervalType,
-                                onTypeSelected = { viewModel.onIntervalTypeChange(it) }
-                            )
-                        }
+                        
+                        ServiceIntervalTypeSelector(
+                            selectedType = intervalType,
+                            onTypeSelected = { viewModel.onIntervalTypeChange(it) }
+                        )
                     }
                 }
 
                 // Service Type Section
-                item {
-                    ServiceSectionCard(
-                        title = "Service Type",
-                        icon = ServiceTypeUtils.getIcon(serviceType),
-                        description = "What type of service was performed?"
-                    ) {
-                        ServiceTypeSelector(
-                            selectedType = serviceType,
-                            onTypeSelected = { viewModel.onServiceTypeChange(it) }
-                        )
-                    }
+                ServiceSectionCard(
+                    title = "Service Type",
+                    icon = ServiceTypeUtils.getIcon(serviceType),
+                    description = "What type of service was performed?"
+                ) {
+                    ServiceTypeSelector(
+                        selectedType = serviceType,
+                        onTypeSelected = { viewModel.onServiceTypeChange(it) }
+                    )
                 }
 
                 // Mileage Section
-                item {
-                    ServiceSectionCard(
-                        title = "Mileage",
-                        icon = Icons.Default.Edit,
-                        description = "Current vehicle mileage"
-                    ) {
-                        OutlinedTextField(
-                            value = mileage,
-                            onValueChange = viewModel::onMileageChange,
-                            label = { Text("Mileage") },
-                            placeholder = { Text("Enter mileage") },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                unfocusedBorderColor = MaterialTheme.colorScheme.outline
-                            ),
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Default.Edit,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        )
-                    }
+                ServiceSectionCard(
+                    title = "Current Mileage",
+                    icon = Icons.Default.Build,
+                    description = "What was the vehicle's mileage at the time of service?"
+                ) {
+                    OutlinedTextField(
+                        value = mileage?.toString() ?: "",
+                        onValueChange = { viewModel.onMileageChange(it) },
+                        label = { Text("Mileage") },
+                        placeholder = { Text("Enter mileage") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                        ),
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Build,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    )
                 }
 
                 // Cost Section
-                item {
-                    ServiceSectionCard(
-                        title = "Cost",
-                        icon = Icons.Default.Receipt,
-                        description = "How much did the service cost?"
-                    ) {
-                        OutlinedTextField(
-                            value = cost,
-                            onValueChange = viewModel::onCostChange,
-                            label = { Text("Cost") },
-                            placeholder = { Text("Enter cost") },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                unfocusedBorderColor = MaterialTheme.colorScheme.outline
-                            ),
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Default.Receipt,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        )
-                    }
+                ServiceSectionCard(
+                    title = "Cost",
+                    icon = Icons.Default.Receipt,
+                    description = "How much did the service cost?"
+                ) {
+                    OutlinedTextField(
+                        value = cost?.toString() ?: "",
+                        onValueChange = { viewModel.onCostChange(it) },
+                        label = { Text("Cost") },
+                        placeholder = { Text("Enter cost") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                        ),
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Receipt,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    )
                 }
 
                 // Provider Section
-                item {
-                    ServiceSectionCard(
-                        title = "Service Provider",
-                        icon = Icons.Default.Person,
-                        description = "Who performed the service?"
-                    ) {
-                        OutlinedTextField(
-                            value = provider,
-                            onValueChange = viewModel::onProviderChange,
-                            label = { Text("Provider") },
-                            placeholder = { Text("Enter service provider name") },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                unfocusedBorderColor = MaterialTheme.colorScheme.outline
-                            ),
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Default.Person,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        )
-                    }
+                ServiceSectionCard(
+                    title = "Service Provider",
+                    icon = Icons.Default.Person,
+                    description = "Who performed the service?"
+                ) {
+                    OutlinedTextField(
+                        value = provider,
+                        onValueChange = viewModel::onProviderChange,
+                        label = { Text("Provider") },
+                        placeholder = { Text("Enter service provider name") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                        ),
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Person,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    )
                 }
 
                 // Notes Section
-                item {
-                    ServiceSectionCard(
-                        title = "Notes",
-                        icon = Icons.Default.Note,
-                        description = "Additional details about the service"
-                    ) {
-                        OutlinedTextField(
-                            value = notes,
-                            onValueChange = viewModel::onNotesChange,
-                            label = { Text("Notes") },
-                            placeholder = { Text("Add any additional notes...") },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(120.dp),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                unfocusedBorderColor = MaterialTheme.colorScheme.outline
-                            ),
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Default.Note,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        )
-                    }
+                ServiceSectionCard(
+                    title = "Notes",
+                    icon = Icons.Default.Note,
+                    description = "Any additional notes about the service?"
+                ) {
+                    OutlinedTextField(
+                        value = notes,
+                        onValueChange = viewModel::onNotesChange,
+                        label = { Text("Notes") },
+                        placeholder = { Text("Enter notes") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(120.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                        ),
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Note,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    )
                 }
 
                 // Photos Section
-                item {
-                    ServiceSectionCard(
-                        title = "Receipt Photos",
-                        icon = Icons.Default.CameraAlt,
-                        description = "Add photos of receipts"
-                    ) {
-                        PhotoUploadSection(
-                            photos = receiptPhotos,
-                            onAddPhoto = { viewModel.onAddPhoto(it) },
-                            onRemovePhoto = { viewModel.onRemovePhoto(it) }
-                        )
-                    }
+                ServiceSectionCard(
+                    title = "Photos",
+                    icon = Icons.Default.Image,
+                    description = "Add photos of the service"
+                ) {
+                    PhotoUploadSection(
+                        photos = receiptPhotos,
+                        onAddPhoto = { viewModel.onAddPhoto(it) },
+                        onRemovePhoto = { viewModel.onRemovePhoto(it) }
+                    )
                 }
 
                 // Next Service Section
-                item {
-                    ServiceSectionCard(
-                        title = "Next Service Due",
-                        icon = Icons.Default.CalendarMonth,
-                        description = "When should the next service be scheduled?"
-                    ) {
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            OutlinedTextField(
-                                value = nextServiceDueMileage ?: "",
-                                onValueChange = { viewModel.onNextServiceDueMileageChange(it) },
-                                label = { Text("Next Service Mileage") },
-                                placeholder = { Text("Enter mileage for next service") },
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(12.dp),
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                ServiceSectionCard(
+                    title = "Next Service",
+                    icon = Icons.Default.CalendarMonth,
+                    description = "When should the next service be performed?"
+                ) {
+                    OutlinedTextField(
+                        value = nextServiceDueDate ?: "",
+                        onValueChange = viewModel::onNextServiceDueDateChange,
+                        label = { Text("Next Service Date") },
+                        placeholder = { Text("Select date") },
+                        trailingIcon = {
+                            IconButton(onClick = { showDatePicker = true }) {
+                                Icon(
+                                    imageVector = Icons.Default.CalendarMonth,
+                                    contentDescription = "Pick date"
                                 )
-                            )
-                            
-                            OutlinedTextField(
-                                value = nextServiceDueDate ?: "",
-                                onValueChange = { viewModel.onNextServiceDueDateChange(it) },
-                                label = { Text("Next Service Date") },
-                                placeholder = { Text("Select date for next service") },
-                                trailingIcon = {
-                                    IconButton(onClick = { showDatePicker = true }) {
-                                        Icon(
-                                            imageVector = Icons.Default.CalendarMonth,
-                                            contentDescription = "Pick date"
-                                        )
-                                    }
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(12.dp),
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                    unfocusedBorderColor = MaterialTheme.colorScheme.outline
-                                ),
-                                readOnly = true
-                            )
-                        }
-                    }
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                        ),
+                        readOnly = true
+                    )
                 }
 
                 // Save Button Section
-                item {
-                    Spacer(modifier = Modifier.height(20.dp))
-                    SaveButton(
-                        onClick = {
-                            viewModel.saveServiceRecord()
-                            onServiceRecordAdded()
-                        },
-                        text = "Save Service Record"
-                    )
+                Button(
+                    onClick = {
+                        viewModel.saveServiceRecord()
+                        onServiceRecordAdded()
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Save Service Record")
                 }
+                
+                Spacer(modifier = Modifier.height(100.dp)) // Space for FAB
             }
             
             // 2. Place Header Overlay SECOND so it sits on top of list
@@ -762,11 +725,11 @@ fun PhotoUploadSection(
                 }
             }
         } else {
-            LazyColumn(
+            Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(photos) { photo ->
+                photos.forEach { photo ->
                     PhotoItem(
                         photo = photo,
                         onRemove = { onRemovePhoto(photo) }
