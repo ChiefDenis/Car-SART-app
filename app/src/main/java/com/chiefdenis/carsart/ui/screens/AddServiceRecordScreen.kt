@@ -85,7 +85,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
@@ -439,26 +438,25 @@ fun AddServiceRecordScreen(viewModel: AddServiceRecordViewModel = hiltViewModel(
                 )
 
                 // 3. Place Button LAST inside this Box so it's on top of TopAppBar
-                IconButton(
-                    onClick = onServiceRecordAdded,
+                Box(
                     modifier = Modifier
                         .align(Alignment.TopStart)
                         .padding(16.dp)
-                        .shadow(
-                            elevation = 12.dp,
-                            shape = RoundedCornerShape(50)
-                        )
                         .background(
                             color = MaterialTheme.colorScheme.surface,
                             shape = RoundedCornerShape(50)
                         )
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Clear,
-                        contentDescription = "Close",
-                        tint = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.size(24.dp)
-                    )
+                    IconButton(
+                        onClick = onServiceRecordAdded,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Clear,
+                            contentDescription = "Close",
+                            tint = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
                 }
             }
         }
@@ -520,6 +518,7 @@ fun ServiceSectionCard(
     title: String,
     icon: ImageVector,
     description: String,
+    modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
     var isVisible by remember { mutableStateOf(false) }
@@ -550,14 +549,10 @@ fun ServiceSectionCard(
         )
     ) {
         Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
+            modifier = modifier,
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
                 contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-            ),
-            elevation = CardDefaults.cardElevation(
-                defaultElevation = 4.dp
             )
         ) {
             Column(
@@ -746,15 +741,9 @@ fun PhotoItem(
     onRemove: () -> Unit
 ) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { /* TODO: View photo */ },
-        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 2.dp
         )
     ) {
         Row(
@@ -806,11 +795,7 @@ fun SaveButton(
         onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
-            .height(56.dp)
-            .shadow(
-                elevation = 8.dp,
-                shape = RoundedCornerShape(16.dp)
-            ),
+            .height(56.dp),
         shape = RoundedCornerShape(16.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primary,
