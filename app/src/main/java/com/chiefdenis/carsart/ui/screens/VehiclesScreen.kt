@@ -63,7 +63,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -483,57 +482,5 @@ fun EmptyVehiclesState(onAddVehicle: () -> Unit, isContentVisible: Boolean = tru
                 )
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    CarSARTTheme {
-        VehiclesScreenContent(
-            vehicles = listOf(
-                Vehicle(
-                    id = UUID.randomUUID(),
-                    make = "Toyota",
-                    model = "Camry",
-                    year = 2021,
-                    nickname = "My Camry",
-                    currentMileage = 15000,
-                    vin = null,
-                    licensePlate = null,
-                    photoUri = null,
-                    vehicleType = VehicleType.SEDAN
-                )
-            ),
-            isLoading = false,
-            onAddVehicle = {},
-            onVehicleClick = {}
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun EmptyVehiclesPreview() {
-    CarSARTTheme {
-        VehiclesScreenContent(
-            vehicles = emptyList(),
-            isLoading = false,
-            onAddVehicle = {},
-            onVehicleClick = {}
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun LoadingPreview() {
-    CarSARTTheme {
-        VehiclesScreenContent(
-            vehicles = emptyList(),
-            isLoading = true,
-            onAddVehicle = {},
-            onVehicleClick = {}
-        )
     }
 }

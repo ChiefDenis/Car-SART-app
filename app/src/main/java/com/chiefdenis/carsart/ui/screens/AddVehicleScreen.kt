@@ -207,9 +207,6 @@ fun HeaderCard() {
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
             contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 2.dp
         )
     ) {
         Row(
